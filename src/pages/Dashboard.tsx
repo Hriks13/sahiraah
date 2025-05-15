@@ -41,29 +41,20 @@ const Dashboard = () => {
 
   const handleStartQuiz = () => {
     setQuizStarted(true);
-    toast({
-      title: "Career Discovery Quiz Started!",
-      description: "Answer the questions to get personalized career recommendations.",
-    });
+    toast("Career Discovery Quiz Started! Answer the questions to get personalized career recommendations.");
   };
 
   const handleQuizComplete = (answers: Record<string, string>) => {
     setUserAnswers(answers);
     setQuizCompleted(true);
-    toast({
-      title: "Quiz Completed!",
-      description: "We're analyzing your answers to find the best career matches.",
-    });
+    toast("Quiz Completed! We're analyzing your answers to find the best career matches.");
   };
 
   const handleRetakeQuiz = () => {
     setQuizStarted(true);
     setQuizCompleted(false);
     setUserAnswers({});
-    toast({
-      title: "Let's Explore Again!",
-      description: "Take the quiz again to discover more career paths.",
-    });
+    toast("Let's Explore Again! Take the quiz again to discover more career paths.");
   };
 
   if (loading) {
