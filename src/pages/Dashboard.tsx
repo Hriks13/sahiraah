@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import CareerQuiz from "@/components/CareerQuiz";
 import CareerRecommendations from "@/components/CareerRecommendations";
+import ExploreResources from "@/components/ExploreResources";
 import { toast } from "@/components/ui/use-toast";
 
 interface User {
@@ -76,7 +76,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 py-8">
+    <div className="min-h-screen bg-[#f0f6ff] py-8">
       <div className="container mx-auto px-4">
         {/* Welcome Section */}
         <div className="bg-white rounded-xl shadow p-6 mb-8">
@@ -175,55 +175,8 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Additional Resources Section - Only show when not in quiz */}
-        {!quizStarted && !quizCompleted && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-blue-900 mb-6">Explore Resources</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-white shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-blue-900">Career Guides</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-blue-700">Explore in-depth information about various career paths and industries.</p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full">
-                    Browse Guides
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              <Card className="bg-white shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-blue-900">Skill Development</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-blue-700">Find courses and resources to build skills for your desired career path.</p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full">
-                    Discover Courses
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              <Card className="bg-white shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-blue-900">Expert Connect</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-blue-700">Connect with mentors and professionals in your field of interest.</p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full">
-                    Coming Soon
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
-        )}
+        {/* Always show Explore Resources section */}
+        <ExploreResources />
       </div>
     </div>
   );

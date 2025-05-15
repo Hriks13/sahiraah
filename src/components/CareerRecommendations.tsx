@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { BookIcon, GraduationCapIcon, BriefcaseIcon, ArrowRightIcon, RefreshCwIcon } from "lucide-react";
+import { BookIcon, GraduationCapIcon, BriefcaseIcon, RefreshCwIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import ExploreResources from "@/components/ExploreResources";
 
 interface RecommendationsProps {
   userAnswers: Record<string, string>;
@@ -210,58 +210,8 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
         </div>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-bold text-blue-900 mb-6">Explore Resources</h2>
-        <p className="text-blue-700 mb-6">
-          Based on your interests and strengths, here are some career resources:
-        </p>
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle className="text-blue-900">Career Guides</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-blue-700">Explore in-depth information about various career paths and industries.</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full flex justify-between">
-                Browse Guides
-                <ArrowRightIcon className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle className="text-blue-900">Skill Development</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-blue-700">Find courses and resources to build skills for your desired career path.</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full flex justify-between">
-                Discover Courses
-                <ArrowRightIcon className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle className="text-blue-900">Expert Connect</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-blue-700">Connect with mentors and professionals in your field of interest.</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full flex justify-between">
-                Coming Soon
-                <ArrowRightIcon className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
+      {/* Use the ExploreResources component */}
+      <ExploreResources />
     </div>
   );
 };

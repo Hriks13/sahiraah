@@ -11,6 +11,8 @@ import About from "./pages/About";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import CareerGuides from "./pages/CareerGuides";
+import Courses from "./pages/Courses";
 import { useEffect, useState } from "react";
 
 // Auth protected route component
@@ -73,6 +75,26 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/career-guides"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CareerGuides />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Courses />
                 </Layout>
               </ProtectedRoute>
             }
