@@ -15,59 +15,73 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // In a real application, this would be an API call to OpenAI or another AI service
-    const mockAnalyzeResponses = () => {
-      const subjects = userAnswers["What are your favorite subjects in school?"].toLowerCase();
-      const problems = userAnswers["What kind of problems do you enjoy solving?"].toLowerCase();
-      const workType = userAnswers["What type of work excites you?"].toLowerCase();
-      const learningStyle = userAnswers["How do you prefer to learn?"].toLowerCase();
+    // Rule-based career recommendation logic
+    const analyzeResponses = () => {
+      const subjects = userAnswers["What are your favorite school subjects?"].toLowerCase();
+      const hobbies = userAnswers["What activities or hobbies do you enjoy most?"].toLowerCase();
+      const learningStyle = userAnswers["How do you prefer learning new things?"].toLowerCase();
+      const workStyle = userAnswers["Do you like working alone or in a team?"].toLowerCase();
       
-      // Simple rule-based logic (would be replaced by AI in production)
       let suggestedCareers = [];
       
-      if ((subjects.includes("math") || subjects.includes("physics")) && 
-          (problems.includes("logical") || problems.includes("puzzle"))) {
+      // Apply the rule-based logic as specified
+      if (subjects.includes("math") || subjects.includes("physics")) {
         suggestedCareers.push({
-          career: "Software Developer",
-          reason: "Your interest in math and logical problem-solving aligns well with programming."
+          career: "Software Engineer",
+          reason: "Your interest in math and physics suggests you might excel in logical problem-solving roles."
+        });
+        
+        suggestedCareers.push({
+          career: "Data Scientist",
+          reason: "Your mathematical aptitude aligns well with data analysis and statistical modeling."
         });
       }
       
-      if ((subjects.includes("art") || subjects.includes("design")) && 
-          (workType.includes("creative"))) {
+      if (subjects.includes("biology")) {
+        suggestedCareers.push({
+          career: "Doctor",
+          reason: "Your interest in biology forms the foundation for medical studies."
+        });
+        
+        suggestedCareers.push({
+          career: "Medical Researcher",
+          reason: "Your biology background could translate well to scientific research."
+        });
+      }
+      
+      if (hobbies.includes("drawing") || hobbies.includes("design") || hobbies.includes("editing")) {
         suggestedCareers.push({
           career: "Graphic Designer",
-          reason: "Your creative interests and artistic subjects suggest you might enjoy visual design work."
+          reason: "Your creative hobbies suggest you might enjoy visual design work."
+        });
+        
+        suggestedCareers.push({
+          career: "UI/UX Designer",
+          reason: "Your design interests pair well with creating user-friendly digital experiences."
         });
       }
       
-      if ((subjects.includes("psychology") || subjects.includes("sociology")) || 
-          (workType.includes("helping others"))) {
+      if (learningStyle.includes("hands-on")) {
         suggestedCareers.push({
-          career: "Psychologist",
-          reason: "Your interest in helping others and understanding human behavior points to counseling roles."
+          career: "Engineer",
+          reason: "Your hands-on learning style is ideal for practical engineering roles."
+        });
+        
+        suggestedCareers.push({
+          career: "Chef",
+          reason: "Your preference for hands-on learning aligns with culinary arts."
         });
       }
       
-      if ((subjects.includes("biology") || subjects.includes("chemistry")) && 
-          (workType.includes("helping") || workType.includes("outdoors"))) {
+      if (workStyle.includes("team")) {
         suggestedCareers.push({
-          career: "Healthcare Professional",
-          reason: "Your science interests combined with a desire to help others is perfect for healthcare."
+          career: "Marketing Manager",
+          reason: "Your team-oriented approach fits well in collaborative marketing environments."
         });
-      }
-      
-      if (workType.includes("outdoor") || subjects.includes("environmental")) {
+        
         suggestedCareers.push({
-          career: "Environmental Scientist",
-          reason: "Your preference for outdoor work and interest in environmental topics align with this field."
-        });
-      }
-      
-      if (subjects.includes("english") || subjects.includes("literature")) {
-        suggestedCareers.push({
-          career: "Content Writer",
-          reason: "Your language arts background suggests you might excel in professional writing."
+          career: "Teacher",
+          reason: "Your preference for teamwork translates well to educational settings."
         });
       }
 
@@ -76,7 +90,7 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
         const defaultOptions = [
           {
             career: "Project Manager",
-            reason: "A versatile role that combines organization, communication, and problem-solving skills."
+            reason: "A versatile role that combines organization, communication, and problem-solving."
           },
           {
             career: "Digital Marketer",
@@ -85,6 +99,10 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
           {
             career: "Data Analyst",
             reason: "Uses technical and analytical skills to derive insights from information."
+          },
+          {
+            career: "Content Creator",
+            reason: "Harnesses creativity and communication skills to produce engaging content."
           }
         ];
         
@@ -101,35 +119,42 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
       return suggestedCareers.slice(0, 3);
     };
 
-    // Simulate API delay
+    // Simulate processing delay
     setTimeout(() => {
-      const results = mockAnalyzeResponses();
+      const results = analyzeResponses();
       setRecommendations(results);
       setIsLoading(false);
       
       // In production with Supabase, we would save these recommendations:
       /*
       const saveRecommendations = async () => {
-        for (const rec of results) {
-          await supabase
-            .from('recommendations')
-            .insert({
-              user_id: userId,
-              career_path: rec.career,
-              score: Math.random() * 100, // Some score metric from AI
-              generated_at: new Date().toISOString(),
-            });
-        }
+        await supabase
+          .from('recommendations')
+          .insert({
+            user_id: userId,
+            career_1: results[0]?.career || "",
+            career_2: results[1]?.career || "",
+            career_3: results[2]?.career || "",
+            generated_at: new Date().toISOString(),
+          });
       };
       saveRecommendations();
       */
+      console.log("Would save to recommendations table:", {
+        user_id: "current-user-id",
+        career_1: results[0]?.career || "",
+        career_2: results[1]?.career || "",
+        career_3: results[2]?.career || "",
+        generated_at: new Date().toISOString(),
+      });
+      
     }, 1500);
   }, [userAnswers]);
 
   const getCareerIcon = (career: string) => {
-    if (career.includes("Developer") || career.includes("Analyst")) {
+    if (career.includes("Engineer") || career.includes("Data") || career.includes("UI/UX")) {
       return <BriefcaseIcon className="h-12 w-12 text-blue-700" />;
-    } else if (career.includes("Designer") || career.includes("Writer")) {
+    } else if (career.includes("Designer") || career.includes("Creator") || career.includes("Chef")) {
       return <BookIcon className="h-12 w-12 text-blue-700" />;
     } else {
       return <GraduationCapIcon className="h-12 w-12 text-blue-700" />;

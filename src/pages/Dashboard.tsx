@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -41,20 +42,29 @@ const Dashboard = () => {
 
   const handleStartQuiz = () => {
     setQuizStarted(true);
-    toast("Career Discovery Quiz Started! Answer the questions to get personalized career recommendations.");
+    toast({
+      title: "Quiz Started",
+      description: "Career Discovery Quiz Started! Answer the questions to get personalized career recommendations."
+    });
   };
 
   const handleQuizComplete = (answers: Record<string, string>) => {
     setUserAnswers(answers);
     setQuizCompleted(true);
-    toast("Quiz Completed! We're analyzing your answers to find the best career matches.");
+    toast({
+      title: "Quiz Completed",
+      description: "We're analyzing your answers to find the best career matches."
+    });
   };
 
   const handleRetakeQuiz = () => {
     setQuizStarted(true);
     setQuizCompleted(false);
     setUserAnswers({});
-    toast("Let's Explore Again! Take the quiz again to discover more career paths.");
+    toast({
+      title: "Quiz Restarted",
+      description: "Let's explore again! Take the quiz again to discover more career paths."
+    });
   };
 
   if (loading) {
@@ -83,7 +93,7 @@ const Dashboard = () => {
           <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
         ) : quizStarted ? (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery Quiz</h2>
+            <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
             <CareerQuiz userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
           </div>
         ) : (

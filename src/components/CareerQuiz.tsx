@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PencilIcon, FileTextIcon, CheckIcon } from "lucide-react";
+import { BookIcon, CodeIcon, UserIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface QuizProps {
@@ -18,43 +18,43 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const { toast } = useToast();
   const [answers, setAnswers] = useState<Record<string, string>>({
-    "What are your favorite subjects in school?": "",
-    "What kind of problems do you enjoy solving?": "",
-    "What type of work excites you?": "",
-    "How do you prefer to learn?": "",
-    "Which careers have you ever thought about, even briefly?": "",
+    "What are your favorite school subjects?": "",
+    "What activities or hobbies do you enjoy most?": "",
+    "How do you prefer learning new things?": "",
+    "Do you like working alone or in a team?": "",
+    "Name a job you've imagined doing, even if just once.": "",
   });
 
   const questions = [
     {
-      question: "What are your favorite subjects in school?",
+      question: "What are your favorite school subjects?",
       type: "text",
       placeholder: "E.g., Mathematics, Physics, Literature, Arts...",
-      icon: <FileTextIcon className="h-5 w-5 text-blue-700" />,
+      icon: <BookIcon className="h-5 w-5 text-blue-700" />,
     },
     {
-      question: "What kind of problems do you enjoy solving?",
+      question: "What activities or hobbies do you enjoy most?",
       type: "text",
-      placeholder: "E.g., Logical puzzles, Creative challenges, People problems...",
-      icon: <PencilIcon className="h-5 w-5 text-blue-700" />,
+      placeholder: "E.g., Drawing, Sports, Programming, Reading...",
+      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
     },
     {
-      question: "What type of work excites you?",
-      type: "radio",
-      options: ["Working outdoors", "Computer-based work", "Helping others", "Creative work"],
-      icon: <FileTextIcon className="h-5 w-5 text-blue-700" />,
-    },
-    {
-      question: "How do you prefer to learn?",
+      question: "How do you prefer learning new things?",
       type: "radio",
       options: ["Visual learning", "Hands-on experience", "Reading books", "Watching videos"],
-      icon: <FileTextIcon className="h-5 w-5 text-blue-700" />,
+      icon: <BookIcon className="h-5 w-5 text-blue-700" />,
     },
     {
-      question: "Which careers have you ever thought about, even briefly?",
+      question: "Do you like working alone or in a team?",
+      type: "radio",
+      options: ["Alone", "In a team", "Both, depending on the task", "Not sure"],
+      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
+    },
+    {
+      question: "Name a job you've imagined doing, even if just once.",
       type: "textarea",
-      placeholder: "List any careers you've considered, even briefly...",
-      icon: <PencilIcon className="h-5 w-5 text-blue-700" />,
+      placeholder: "Tell us about a job you've thought about doing...",
+      icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
     },
   ];
 
@@ -170,7 +170,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
               "Next Question"
             ) : (
               <span className="flex items-center">
-                Complete <CheckIcon className="ml-1 h-4 w-4" />
+                Complete
               </span>
             )}
           </Button>
