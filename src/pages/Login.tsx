@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import AdBanner from "@/components/AdBanner";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen py-6 flex flex-col bg-blue-50">
+      <ScrollToTop />
       {/* Ad Banner - Top */}
       <AdBanner size="leaderboard" className="bg-white mb-4" />
       
