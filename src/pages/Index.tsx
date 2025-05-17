@@ -1,10 +1,14 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import AdBanner from "@/components/AdBanner";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      {/* Ad Banner - Top */}
+      <AdBanner size="leaderboard" className="bg-white py-3" />
+      
       {/* Hero Section */}
       <div className="relative bg-blue-50 min-h-[70vh] flex items-center">
         <div 
@@ -73,6 +77,42 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Team Section */}
+      <div className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-blue-900">Our Team</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
+              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-blue-800">HM</span>
+              </div>
+              <h3 className="text-xl font-bold text-blue-800">Hrithik MP</h3>
+              <p className="text-blue-700">Founder & CEO</p>
+            </div>
+            
+            <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
+              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-blue-800">NK</span>
+              </div>
+              <h3 className="text-xl font-bold text-blue-800">Nithish Kumar B</h3>
+              <p className="text-blue-700">AI Lead</p>
+            </div>
+            
+            <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
+              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-blue-800">AR</span>
+              </div>
+              <h3 className="text-xl font-bold text-blue-800">H Adithya Rao</h3>
+              <p className="text-blue-700">Education Specialist</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ad Banner - Bottom */}
+      <AdBanner size="leaderboard" className="bg-blue-50 py-6" />
 
       {/* CTA Section */}
       <div className="py-16 bg-blue-900 text-white">
