@@ -23,9 +23,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-4">Contact</h4>
-            <p className="text-blue-200">support@sahiraah.com</p>
-            <p className="text-blue-200">+91 98765 43210</p>
+            <h4 className="font-bold text-lg mb-4">Contact & Legal</h4>
+            <ul className="space-y-2">
+              <li><a href="mailto:support@sahiraah.in" className="text-blue-200 hover:text-yellow-500">support@sahiraah.in</a></li>
+              <li><Link to="/terms" className="text-blue-200 hover:text-yellow-500">Terms & Conditions</Link></li>
+              <li><Link to="/privacy" className="text-blue-200 hover:text-yellow-500">Privacy Policy</Link></li>
+            </ul>
           </div>
         </div>
 

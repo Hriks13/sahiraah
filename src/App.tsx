@@ -13,6 +13,8 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import CareerGuides from "./pages/CareerGuides";
 import Courses from "./pages/Courses";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import { useEffect, useState } from "react";
 
 // Auth protected route component
@@ -99,6 +101,8 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

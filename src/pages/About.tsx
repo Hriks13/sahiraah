@@ -1,10 +1,14 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import AdBanner from "@/components/AdBanner";
 
 const About = () => {
   return (
     <div className="min-h-screen">
+      {/* Ad Banner - Top */}
+      <AdBanner size="leaderboard" className="bg-white py-3" />
+
       {/* Hero Section */}
       <div className="relative bg-blue-50 py-16">
         <div className="container mx-auto px-4">
@@ -52,6 +56,9 @@ const About = () => {
         </div>
       </div>
 
+      {/* Ad Banner - Middle */}
+      <AdBanner size="leaderboard" className="bg-blue-50 py-3" />
+
       {/* How It Works */}
       <div className="py-16 bg-blue-50">
         <div className="container mx-auto px-4">
@@ -92,28 +99,34 @@ const About = () => {
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
-              <div className="w-24 h-24 bg-blue-200 rounded-full mx-auto mb-4"></div>
-              <h3 className="text-xl font-bold mb-1 text-blue-800">Ananya Sharma</h3>
-              <p className="text-blue-700 mb-3">Founder & CEO</p>
-              <p className="text-blue-600">Career counselor with 10+ years of experience helping students discover their potential.</p>
+              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-blue-800">HM</span>
+              </div>
+              <h3 className="text-xl font-bold mb-1 text-blue-800">Hrithik MP</h3>
+              <p className="text-blue-700">Founder & CEO</p>
             </div>
             
             <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
-              <div className="w-24 h-24 bg-blue-200 rounded-full mx-auto mb-4"></div>
-              <h3 className="text-xl font-bold mb-1 text-blue-800">Rajesh Kumar</h3>
-              <p className="text-blue-700 mb-3">AI Lead</p>
-              <p className="text-blue-600">ML expert passionate about applying AI to solve educational and career guidance challenges.</p>
+              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-blue-800">NK</span>
+              </div>
+              <h3 className="text-xl font-bold mb-1 text-blue-800">Nithish Kumar B</h3>
+              <p className="text-blue-700">AI Lead</p>
             </div>
             
             <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
-              <div className="w-24 h-24 bg-blue-200 rounded-full mx-auto mb-4"></div>
-              <h3 className="text-xl font-bold mb-1 text-blue-800">Priya Patel</h3>
-              <p className="text-blue-700 mb-3">Education Specialist</p>
-              <p className="text-blue-600">Former educator focused on bridging the gap between education and career readiness.</p>
+              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-blue-800">AR</span>
+              </div>
+              <h3 className="text-xl font-bold mb-1 text-blue-800">H Adithya Rao</h3>
+              <p className="text-blue-700">Education Specialist</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Ad Banner - Bottom */}
+      <AdBanner size="leaderboard" className="bg-blue-50 py-3" />
     </div>
   );
 };
