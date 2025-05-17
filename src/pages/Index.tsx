@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AdBanner from "@/components/AdBanner";
+import AdSenseAd from "@/components/AdSenseAd";
 
 const Index = () => {
   return (
@@ -32,6 +33,13 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Google AdSense Ad - Prominent placement after hero section */}
+      <div className="w-full py-6 bg-white">
+        <div className="container mx-auto px-4">
+          <AdSenseAd adSlot="1234567890" adFormat="horizontal" />
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -56,6 +64,13 @@ const Index = () => {
               <p className="text-blue-700">Get personalized career recommendations and resources to explore them further.</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Google AdSense Ad - Middle of content */}
+      <div className="w-full py-6 bg-blue-50">
+        <div className="container mx-auto px-4">
+          <AdSenseAd adSlot="1234567890" adFormat="rectangle" />
         </div>
       </div>
 
