@@ -1,7 +1,6 @@
 
-// Export from our new import location
+// Re-export from the correct location
 import { useToast } from "../ui/toast/use-toast";
-import { toast as toastFunction } from "../ui/toast/use-toast";
+import { toast } from "../ui/toast/use-toast";
 
-export const toast = toastFunction;
-export { useToast };
+export { toast, useToast };
