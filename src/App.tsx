@@ -16,6 +16,7 @@ import CareerGuides from "./pages/CareerGuides";
 import Courses from "./pages/Courses";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import Settings from "./pages/Settings";
 import { useEffect, useState } from "react";
 
 // Auth protected route component
@@ -79,6 +80,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Settings />
                 </Layout>
               </ProtectedRoute>
             }
