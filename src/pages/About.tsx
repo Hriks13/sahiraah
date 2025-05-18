@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import AdSenseAd from "@/components/AdSenseAd";
 
 const About = () => {
   return (
@@ -20,6 +21,11 @@ const About = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Ad placement after hero section */}
+      <div className="container mx-auto px-4 py-2">
+        <AdSenseAd adSlot="1234567890" />
       </div>
 
       {/* Mission */}
@@ -82,6 +88,11 @@ const About = () => {
               <h3 className="text-xl font-bold mb-3 text-blue-800">Get Recommendations</h3>
               <p className="text-blue-700">Receive personalized career recommendations, resources, and next steps to explore your optimal paths.</p>
             </div>
+          </div>
+
+          {/* Ad placement after how it works section */}
+          <div className="mt-8">
+            <AdSenseAd adSlot="1234567890" />
           </div>
         </div>
       </div>

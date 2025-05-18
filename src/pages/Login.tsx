@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import ScrollToTop from "@/components/ScrollToTop";
+import AdSenseAd from "@/components/AdSenseAd";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -46,6 +47,10 @@ const Login = () => {
   return (
     <div className="min-h-screen py-6 flex flex-col bg-blue-50">
       <ScrollToTop />
+      
+      <div className="container mx-auto px-4 py-4">
+        <AdSenseAd adSlot="1234567890" />
+      </div>
       
       <div className="flex-grow flex items-center justify-center px-4 py-6">
         <Card className="w-full max-w-md">

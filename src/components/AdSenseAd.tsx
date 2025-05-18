@@ -14,7 +14,6 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   style = { display: 'block', textAlign: 'center' },
   className,
 }) => {
-  // Use a more generic HTMLDivElement type
   const adRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -35,7 +34,7 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   }, []);
 
   return (
-    <div className={`adsense-container ${className || ''} my-4`}>
+    <div className={`adsense-container ${className || ''}`} ref={adRef}>
       <ins
         className="adsbygoogle"
         style={style}
@@ -43,7 +42,6 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"
-        ref={adRef as any} // Use type assertion to avoid TypeScript error
       />
     </div>
   );

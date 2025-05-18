@@ -1,5 +1,6 @@
 
 import { Link } from "react-router-dom";
+import AdSenseAd from "@/components/AdSenseAd";
 
 const Terms = () => {
   return (
@@ -8,6 +9,8 @@ const Terms = () => {
         <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
           <h1 className="text-3xl font-bold mb-6 text-blue-900">Terms & Conditions – SahiRaah</h1>
           <p className="text-gray-600 mb-8">Effective Date: 17/05/2025</p>
+          
+          <AdSenseAd adSlot="1234567890" className="mb-6" />
           
           <p className="mb-6">Welcome to SahiRaah. By using this platform, you agree to the following terms:</p>
           
@@ -31,6 +34,8 @@ const Terms = () => {
               <h2 className="text-xl font-bold text-blue-800 mb-2">Data Usage</h2>
               <p>We collect and store your answers and interactions securely in Supabase for improving recommendations. See our <Link to="/privacy" className="text-blue-700 hover:text-blue-900">Privacy Policy</Link> for full details.</p>
             </section>
+            
+            <AdSenseAd adSlot="1234567890" className="my-6" />
             
             <section>
               <h2 className="text-xl font-bold text-blue-800 mb-2">Content Ownership</h2>

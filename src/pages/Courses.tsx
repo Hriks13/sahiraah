@@ -1,7 +1,9 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CourseDetail from "@/components/CourseDetail";
+import AdSenseAd from "@/components/AdSenseAd";
 
 const Courses = () => {
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -72,6 +74,46 @@ const Courses = () => {
       ],
       nextCourse: "Healthcare Quality and Patient Safety"
     },
+    // Adding more courses
+    {
+      title: "Mobile App Development",
+      description: "Learn to develop native mobile applications for iOS and Android platforms using React Native.",
+      level: "Intermediate",
+      duration: "10 weeks",
+      prerequisites: ["JavaScript Basics", "React Fundamentals"],
+      resources: [
+        { name: "React Native - The Practical Guide", platform: "Udemy", link: "https://www.udemy.com/course/react-native-the-practical-guide/", type: "Course" },
+        { name: "Mobile App Development with React Native", platform: "edX", link: "https://www.edx.org/learn/react-native", type: "Course" },
+        { name: "React Native Tutorial for Beginners", platform: "YouTube", link: "https://www.youtube.com/watch?v=0-S5a0eXPoc", type: "Video Series" }
+      ],
+      nextCourse: "Advanced App Development & Publishing"
+    },
+    {
+      title: "Financial Planning & Analysis",
+      description: "Master financial analysis, forecasting, and budgeting techniques essential for business decision-making.",
+      level: "Intermediate",
+      duration: "8 weeks",
+      prerequisites: ["Basic Accounting Knowledge"],
+      resources: [
+        { name: "Financial Planning & Analysis", platform: "Coursera", link: "https://www.coursera.org/learn/financial-planning", type: "Course" },
+        { name: "Finance for Non-Finance Professionals", platform: "edX", link: "https://www.edx.org/learn/finance", type: "Course" },
+        { name: "Financial Modeling Basics", platform: "YouTube", link: "https://www.youtube.com/watch?v=VdgYcfA4TM8", type: "Video Series" }
+      ],
+      nextCourse: "Advanced Financial Modeling"
+    },
+    {
+      title: "Digital Marketing Essentials",
+      description: "Learn SEO, SEM, social media marketing, and content strategy to promote products and services online.",
+      level: "Beginner",
+      duration: "6 weeks",
+      prerequisites: [],
+      resources: [
+        { name: "Digital Marketing Specialization", platform: "Coursera", link: "https://www.coursera.org/specializations/digital-marketing", type: "Course" },
+        { name: "Introduction to Digital Marketing", platform: "Google Digital Garage", link: "https://learndigital.withgoogle.com/digitalgarage/course/digital-marketing", type: "Interactive Tutorial" },
+        { name: "Social Media Marketing", platform: "NPTEL", link: "https://nptel.ac.in/courses/110/105/110105034/", type: "Video Series" }
+      ],
+      nextCourse: "Advanced Digital Marketing Analytics"
+    }
   ];
 
   const handleCloseModal = () => {
@@ -85,13 +127,47 @@ const Courses = () => {
         <p className="text-[#1d3557] mb-8">
           Find courses and resources to build skills for your desired career path
         </p>
+        
+        {/* Ad placement at the top of the page */}
+        <div className="mb-6">
+          <AdSenseAd adSlot="1234567890" />
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course, index) => (
+          {courses.slice(0, 3).map((course, index) => (
             <Card 
               key={index} 
               className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
               onClick={() => setSelectedCourse(index)}
+            >
+              <CardHeader>
+                <div className="flex justify-between">
+                  <CardTitle className="text-[#1d3557]">{course.title}</CardTitle>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {course.level}
+                  </Badge>
+                </div>
+                <CardDescription>Duration: {course.duration}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-[#1d3557]">{course.description}</p>
+                <div className="mt-3 text-sm text-blue-700">Click to view free learning resources</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Ad placement in the middle of courses */}
+        <div className="my-6">
+          <AdSenseAd adSlot="1234567890" />
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          {courses.slice(3).map((course, index) => (
+            <Card 
+              key={index + 3} 
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => setSelectedCourse(index + 3)}
             >
               <CardHeader>
                 <div className="flex justify-between">
