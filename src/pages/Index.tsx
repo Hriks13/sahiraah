@@ -1,15 +1,10 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import AdBanner from "@/components/AdBanner";
-import AdSenseAd from "@/components/AdSenseAd";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
-      {/* Ad Banner - Top */}
-      <AdBanner size="leaderboard" className="bg-white" />
-      
       {/* Hero Section */}
       <div className="relative bg-blue-50 min-h-[70vh] flex items-center">
         <div 
@@ -30,13 +25,6 @@ const Index = () => {
               </Button>
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Google AdSense Ad - Prominent placement after hero section */}
-      <div className="w-full bg-white">
-        <div className="container mx-auto">
-          <AdSenseAd adSlot="1234567890" adFormat="horizontal" />
         </div>
       </div>
 
@@ -64,13 +52,6 @@ const Index = () => {
               <p className="text-blue-700">Get personalized career recommendations and resources to explore them further.</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Google AdSense Ad - Middle of content */}
-      <div className="w-full bg-blue-50">
-        <div className="container mx-auto">
-          <AdSenseAd adSlot="1234567890" adFormat="rectangle" />
         </div>
       </div>
 
@@ -105,9 +86,6 @@ const Index = () => {
           </Link>
         </div>
       </div>
-
-      {/* Ad Banner - Bottom */}
-      <AdBanner size="leaderboard" className="bg-blue-50" />
     </div>
   );
 };

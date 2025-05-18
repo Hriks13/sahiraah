@@ -1,15 +1,11 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import AdBanner from "@/components/AdBanner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const About = () => {
   return (
     <div className="min-h-screen">
-      {/* Ad Banner - Top */}
-      <AdBanner size="leaderboard" className="bg-white" />
-
       {/* Hero Section */}
       <div className="relative bg-blue-50 py-16">
         <div className="container mx-auto px-4">
@@ -56,9 +52,6 @@ const About = () => {
           </div>
         </div>
       </div>
-
-      {/* Ad Banner - Middle */}
-      <AdBanner size="leaderboard" className="bg-blue-50" />
 
       {/* How It Works */}
       <div className="py-16 bg-blue-50">
@@ -134,9 +127,6 @@ const About = () => {
           </div>
         </div>
       </div>
-
-      {/* Ad Banner - Bottom */}
-      <AdBanner size="leaderboard" className="bg-blue-50" />
     </div>
   );
 };

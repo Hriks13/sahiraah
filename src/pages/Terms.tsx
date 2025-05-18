@@ -1,13 +1,9 @@
 
 import { Link } from "react-router-dom";
-import AdBanner from "@/components/AdBanner";
 
 const Terms = () => {
   return (
     <div className="min-h-screen py-6 bg-blue-50">
-      {/* Ad Banner - Top */}
-      <AdBanner size="leaderboard" className="bg-white mb-4" />
-      
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
           <h1 className="text-3xl font-bold mb-6 text-blue-900">Terms & Conditions – SahiRaah</h1>
@@ -59,9 +55,6 @@ const Terms = () => {
           </div>
         </div>
       </div>
-      
-      {/* Ad Banner - Bottom */}
-      <AdBanner size="leaderboard" className="bg-white mt-4" />
     </div>
   );
 };

@@ -1,9 +1,7 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CourseDetail from "@/components/CourseDetail";
-import AdBanner from "@/components/AdBanner";
 
 const Courses = () => {
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -87,9 +85,6 @@ const Courses = () => {
         <p className="text-[#1d3557] mb-8">
           Find courses and resources to build skills for your desired career path
         </p>
-
-        {/* Ad Banner */}
-        <AdBanner size="leaderboard" className="bg-white mb-8" />
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course, index) => (
