@@ -2,12 +2,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AdBanner from "@/components/AdBanner";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const About = () => {
   return (
     <div className="min-h-screen">
       {/* Ad Banner - Top */}
-      <AdBanner size="leaderboard" className="bg-white py-3" />
+      <AdBanner size="leaderboard" className="bg-white" />
 
       {/* Hero Section */}
       <div className="relative bg-blue-50 py-16">
@@ -57,7 +58,7 @@ const About = () => {
       </div>
 
       {/* Ad Banner - Middle */}
-      <AdBanner size="leaderboard" className="bg-blue-50 py-3" />
+      <AdBanner size="leaderboard" className="bg-blue-50" />
 
       {/* How It Works */}
       <div className="py-16 bg-blue-50">
@@ -99,24 +100,33 @@ const About = () => {
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
-              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-blue-800">HM</span>
+              <div className="mx-auto mb-4 w-28 h-28 rounded-full overflow-hidden border-4 border-blue-200">
+                <Avatar className="w-full h-full">
+                  <AvatarImage src="/lovable-uploads/6b9157fa-c88d-488f-99b9-9f5fb09bc314.png" alt="Hrithik MP" className="object-cover" />
+                  <AvatarFallback>HM</AvatarFallback>
+                </Avatar>
               </div>
               <h3 className="text-xl font-bold mb-1 text-blue-800">Hrithik MP</h3>
               <p className="text-blue-700">Founder & CEO</p>
             </div>
             
             <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
-              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-blue-800">NK</span>
+              <div className="mx-auto mb-4 w-28 h-28 rounded-full overflow-hidden border-4 border-blue-200">
+                <Avatar className="w-full h-full">
+                  <AvatarImage src="/lovable-uploads/36906fe3-2a3f-466d-8e86-53460799efd2.png" alt="Nithish Kumar B" className="object-cover" />
+                  <AvatarFallback>NK</AvatarFallback>
+                </Avatar>
               </div>
               <h3 className="text-xl font-bold mb-1 text-blue-800">Nithish Kumar B</h3>
               <p className="text-blue-700">AI Lead</p>
             </div>
             
             <div className="bg-blue-50 p-6 rounded-xl shadow text-center">
-              <div className="w-24 h-24 rounded-full bg-blue-200 mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-blue-800">AR</span>
+              <div className="mx-auto mb-4 w-28 h-28 rounded-full overflow-hidden border-4 border-blue-200">
+                <Avatar className="w-full h-full">
+                  <AvatarImage src="/lovable-uploads/1bd2fd26-59a7-4638-ab11-3b70e09e14a6.png" alt="H Adithya Rao" className="object-cover" />
+                  <AvatarFallback>AR</AvatarFallback>
+                </Avatar>
               </div>
               <h3 className="text-xl font-bold mb-1 text-blue-800">H Adithya Rao</h3>
               <p className="text-blue-700">Education Specialist</p>
@@ -126,7 +136,7 @@ const About = () => {
       </div>
 
       {/* Ad Banner - Bottom */}
-      <AdBanner size="leaderboard" className="bg-blue-50 py-3" />
+      <AdBanner size="leaderboard" className="bg-blue-50" />
     </div>
   );
 };

@@ -14,14 +14,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex flex-col min-h-screen">
       <ScrollToTop />
       <Navbar />
-      <div className="container mx-auto px-4">
-        <AdSenseAd adSlot="1234567890" className="mt-4" />
+      <div className="container mx-auto">
+        <AdSenseAd adSlot="1234567890" />
       </div>
       <main className="flex-grow">
         {children}
       </main>
-      <div className="container mx-auto px-4">
-        <AdSenseAd adSlot="1234567890" className="mb-4" />
+      <div className="container mx-auto">
+        <AdSenseAd adSlot="1234567890" />
       </div>
       <Footer />
     </div>
