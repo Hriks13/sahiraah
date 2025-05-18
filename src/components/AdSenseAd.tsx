@@ -14,9 +14,7 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   style = { display: 'block', textAlign: 'center' },
   className,
 }) => {
-  // Use HTMLDivElement instead of HTMLElement
-  // Since we can't directly use HTMLInsElement (it doesn't exist in TypeScript's DOM types)
-  // We'll use a more generic element type and cast it when needed
+  // Use a more generic HTMLDivElement type
   const adRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -37,7 +35,7 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   }, []);
 
   return (
-    <div className={`adsense-container ${className || ''}`}>
+    <div className={`adsense-container ${className || ''} my-4`}>
       <ins
         className="adsbygoogle"
         style={style}

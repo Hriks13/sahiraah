@@ -15,13 +15,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <ScrollToTop />
       <Navbar />
       <div className="container mx-auto">
-        <AdSenseAd adSlot="1234567890" />
+        <AdSenseAd adSlot="1234567890" className="mt-2" />
       </div>
       <main className="flex-grow">
         {children}
       </main>
       <div className="container mx-auto">
-        <AdSenseAd adSlot="1234567890" />
+        <AdSenseAd adSlot="1234567890" className="mb-2" />
       </div>
       <Footer />
     </div>
