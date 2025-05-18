@@ -14,8 +14,10 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   style = { display: 'block', textAlign: 'center' },
   className,
 }) => {
-  // Using HTMLElement instead of HTMLInsElement which doesn't exist
-  const adRef = useRef<HTMLElement>(null);
+  // Use HTMLDivElement instead of HTMLElement
+  // Since we can't directly use HTMLInsElement (it doesn't exist in TypeScript's DOM types)
+  // We'll use a more generic element type and cast it when needed
+  const adRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     try {
@@ -43,7 +45,7 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"
-        ref={adRef}
+        ref={adRef as any} // Use type assertion to avoid TypeScript error
       />
     </div>
   );
