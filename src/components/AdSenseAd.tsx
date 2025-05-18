@@ -14,7 +14,8 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   style = { display: 'block', textAlign: 'center' },
   className,
 }) => {
-  const adRef = useRef<HTMLDivElement>(null);
+  // Change the ref type to HTMLInsElement which is the correct type for <ins> elements
+  const adRef = useRef<HTMLInsElement>(null);
   
   useEffect(() => {
     try {
