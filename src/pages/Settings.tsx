@@ -8,6 +8,7 @@ import { AccountSettings } from "@/components/settings/AccountSettings";
 import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 import { HistorySettings } from "@/components/settings/HistorySettings";
 import { UserProfile } from "@/types/user";
+import { Facebook } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -37,8 +38,10 @@ const Settings = () => {
     try {
       localStorage.setItem("sahiraah_user", JSON.stringify(updatedProfile));
       setProfile(updatedProfile);
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Error saving profile:", error);
+      toast.error("Failed to update profile");
       throw error;
     }
   };
@@ -73,11 +76,11 @@ const Settings = () => {
           </TabsContent>
           
           <TabsContent value="history">
-            <HistorySettings />
+            <HistorySettings userId={profile.id} />
           </TabsContent>
           
           <TabsContent value="preferences">
-            <PreferencesSettings />
+            <PreferencesSettings userId={profile.id} />
           </TabsContent>
         </Tabs>
       )}

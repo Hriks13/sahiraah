@@ -4,27 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookIcon, HistoryIcon, ArrowRightIcon } from "lucide-react";
+import { CareerResult } from "@/types/user";
 
-interface CareerResult {
-  career: string;
-  timestamp: string;
+interface HistorySettingsProps {
+  userId?: string;
 }
 
-export const HistorySettings = () => {
+export const HistorySettings = ({ userId }: HistorySettingsProps) => {
   const [careerHistory, setCareerHistory] = useState<CareerResult[]>([]);
 
   useEffect(() => {
-    // Load career history from local storage
-    const historyStr = localStorage.getItem("sahiraah_career_history");
-    if (historyStr) {
-      try {
-        const historyData = JSON.parse(historyStr);
-        setCareerHistory(historyData);
-      } catch (error) {
-        console.error("Error parsing career history data:", error);
+    // Load career history from local storage for the specific user
+    if (userId) {
+      const historyStr = localStorage.getItem(`sahiraah_career_history_${userId}`);
+      if (historyStr) {
+        try {
+          const historyData = JSON.parse(historyStr);
+          setCareerHistory(historyData);
+        } catch (error) {
+          console.error("Error parsing career history data:", error);
+        }
       }
     }
-  }, []);
+  }, [userId]);
 
   return (
     <Card>
@@ -61,6 +63,9 @@ export const HistorySettings = () => {
                     </a>
                   </Button>
                 </div>
+                {result.reason && (
+                  <p className="text-sm text-gray-600 mt-2">{result.reason}</p>
+                )}
               </div>
             ))}
           </div>
