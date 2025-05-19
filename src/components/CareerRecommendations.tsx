@@ -1,10 +1,8 @@
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { BookIcon, GraduationCapIcon, BriefcaseIcon, RefreshCwIcon, ArrowRightIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import ExploreResources from "@/components/ExploreResources";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdBanner from "@/components/AdBanner";
 import { useToast } from "@/components/ui/use-toast";
@@ -322,6 +320,31 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
 
   const handleStartJourney = (index: number) => {
     setSelectedCareer(index);
+    
+    // Save the selected career to localStorage
+    const careerData = {
+      career: recommendations[index].career,
+      reason: recommendations[index].reason,
+      timestamp: new Date().toISOString()
+    };
+    
+    localStorage.setItem("sahiraah_user_career", JSON.stringify(careerData));
+    
+    // Also save to history
+    const historyStr = localStorage.getItem("sahiraah_career_history");
+    let history = [];
+    
+    if (historyStr) {
+      try {
+        history = JSON.parse(historyStr);
+      } catch (error) {
+        console.error("Error parsing history:", error);
+      }
+    }
+    
+    history.push(careerData);
+    localStorage.setItem("sahiraah_career_history", JSON.stringify(history));
+    
     toast({
       title: "Career path selected!",
       description: `You've started your journey towards becoming a ${recommendations[index].career}.`,
@@ -340,8 +363,8 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
   }
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-blue-900">Your Career Recommendations</h2>
           <Button 
@@ -352,11 +375,11 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
             <RefreshCwIcon className="h-4 w-4" /> Retake Quiz
           </Button>
         </div>
-        <p className="text-blue-700 mb-6">
+        <p className="text-blue-700 mb-4">
           Based on your answers, we've identified these career paths that match your interests and strengths:
         </p>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-4">
           {careerRoadmaps.map((rec, index) => (
             <Card key={index} className="bg-white shadow-md hover:shadow-lg transition-all">
               <CardHeader className="pb-2">
@@ -572,9 +595,6 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
           </div>
         </div>
       )}
-
-      {/* Always show Explore Resources section */}
-      <ExploreResources />
     </div>
   );
 };

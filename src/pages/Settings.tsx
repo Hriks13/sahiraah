@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/sonner";
 import { ProfileForm } from "@/components/settings/ProfileForm";
 import { AccountSettings } from "@/components/settings/AccountSettings";
 import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
+import { HistorySettings } from "@/components/settings/HistorySettings";
 import { UserProfile } from "@/types/user";
 
 const Settings = () => {
@@ -51,14 +52,15 @@ const Settings = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-blue-900 mb-6">Account Settings</h1>
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-3xl font-bold text-blue-900 mb-4">Account Settings</h1>
       
       {profile && (
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-4">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
           
@@ -68,6 +70,10 @@ const Settings = () => {
           
           <TabsContent value="account">
             <AccountSettings profile={profile} />
+          </TabsContent>
+          
+          <TabsContent value="history">
+            <HistorySettings />
           </TabsContent>
           
           <TabsContent value="preferences">

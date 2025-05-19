@@ -1,9 +1,7 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CourseDetail from "@/components/CourseDetail";
-import AdSenseAd from "@/components/AdSenseAd";
 
 const Courses = () => {
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -121,26 +119,21 @@ const Courses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f6ff] py-8">
+    <div className="min-h-screen bg-[#f0f6ff] py-6">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold text-[#1d3557] mb-2">Skill Development Courses</h1>
-        <p className="text-[#1d3557] mb-8">
+        <p className="text-[#1d3557] mb-6">
           Find courses and resources to build skills for your desired career path
         </p>
-        
-        {/* Ad placement at the top of the page */}
-        <div className="mb-6">
-          <AdSenseAd adSlot="1234567890" />
-        </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {courses.slice(0, 3).map((course, index) => (
             <Card 
               key={index} 
               className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
               onClick={() => setSelectedCourse(index)}
             >
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <div className="flex justify-between">
                   <CardTitle className="text-[#1d3557]">{course.title}</CardTitle>
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -151,25 +144,20 @@ const Courses = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-[#1d3557]">{course.description}</p>
-                <div className="mt-3 text-sm text-blue-700">Click to view free learning resources</div>
+                <div className="mt-2 text-sm text-blue-700">Click to view free learning resources</div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Ad placement in the middle of courses */}
-        <div className="my-6">
-          <AdSenseAd adSlot="1234567890" />
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           {courses.slice(3).map((course, index) => (
             <Card 
               key={index + 3} 
               className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
               onClick={() => setSelectedCourse(index + 3)}
             >
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <div className="flex justify-between">
                   <CardTitle className="text-[#1d3557]">{course.title}</CardTitle>
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -180,7 +168,7 @@ const Courses = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-[#1d3557]">{course.description}</p>
-                <div className="mt-3 text-sm text-blue-700">Click to view free learning resources</div>
+                <div className="mt-2 text-sm text-blue-700">Click to view free learning resources</div>
               </CardContent>
             </Card>
           ))}

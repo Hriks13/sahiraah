@@ -6,4 +6,15 @@ export interface UserProfile {
   profilePicture?: string;
   location?: string;
   bio?: string;
+  selectedCareer?: {
+    career: string;
+    reason: string;
+    timestamp: string;
+  };
+}
+
+export interface CareerResult {
+  career: string;
+  reason: string;
+  timestamp: string;
 }
