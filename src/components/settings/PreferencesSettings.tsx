@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { BookIcon, BellIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/toast/use-toast";
 
 interface PreferencesSettingsProps {
   userId?: string;
@@ -15,36 +17,117 @@ export const PreferencesSettings = ({ userId }: PreferencesSettingsProps) => {
   const [careerReason, setCareerReason] = useState<string | null>(null);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [appNotifications, setAppNotifications] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load selected career path from local storage for specific user
-    if (userId) {
-      const userStr = localStorage.getItem(`sahiraah_user_career_${userId}`);
-      if (userStr) {
-        try {
-          const careerData = JSON.parse(userStr);
+    const fetchPreferences = async () => {
+      if (!userId) return;
+      
+      try {
+        setLoading(true);
+        
+        // Fetch selected career
+        const { data: careerData, error: careerError } = await supabase
+          .from('user_career_history')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_selected', true)
+          .single();
+        
+        if (careerError && careerError.code !== 'PGRST116') {
+          console.error("Error fetching selected career:", careerError);
+        }
+        
+        if (careerData) {
           setSelectedCareer(careerData.career);
           setCareerReason(careerData.reason);
-        } catch (error) {
-          console.error("Error parsing career data:", error);
         }
-      }
-
-      // Also check if this data is in the user object
-      const userData = localStorage.getItem("sahiraah_user");
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          if (user.selectedCareer) {
-            setSelectedCareer(user.selectedCareer.career);
-            setCareerReason(user.selectedCareer.reason);
-          }
-        } catch (error) {
-          console.error("Error parsing user data:", error);
+        
+        // Fetch notification preferences
+        const { data: prefData, error: prefError } = await supabase
+          .from('user_preferences')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        if (prefError && prefError.code !== 'PGRST116') {
+          console.error("Error fetching user preferences:", prefError);
         }
+        
+        if (prefData) {
+          setEmailNotifications(prefData.email_notifications);
+          setAppNotifications(prefData.app_notifications);
+        } else {
+          // Insert default preferences
+          await supabase.from('user_preferences').insert({
+            user_id: userId,
+            email_notifications: true,
+            app_notifications: true
+          });
+        }
+      } catch (error) {
+        console.error("Error in preferences fetch:", error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+    
+    fetchPreferences();
   }, [userId]);
+
+  const handleEmailNotificationChange = async (checked: boolean) => {
+    if (!userId) return;
+    
+    try {
+      setEmailNotifications(checked);
+      
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ email_notifications: checked, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error("Error updating email notifications:", error);
+      toast({ title: "Failed to update preferences", variant: "destructive" });
+      setEmailNotifications(!checked); // Revert on error
+    }
+  };
+
+  const handleAppNotificationChange = async (checked: boolean) => {
+    if (!userId) return;
+    
+    try {
+      setAppNotifications(checked);
+      
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ app_notifications: checked, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error("Error updating app notifications:", error);
+      toast({ title: "Failed to update preferences", variant: "destructive" });
+      setAppNotifications(!checked); // Revert on error
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferences</CardTitle>
+          <CardDescription>Loading your preferences...</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-700 border-t-transparent rounded-full"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -89,7 +172,7 @@ export const PreferencesSettings = ({ userId }: PreferencesSettingsProps) => {
               <Switch 
                 id="email-notifications" 
                 checked={emailNotifications} 
-                onCheckedChange={setEmailNotifications}
+                onCheckedChange={handleEmailNotificationChange}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -100,7 +183,7 @@ export const PreferencesSettings = ({ userId }: PreferencesSettingsProps) => {
               <Switch 
                 id="app-notifications" 
                 checked={appNotifications} 
-                onCheckedChange={setAppNotifications}
+                onCheckedChange={handleAppNotificationChange}
               />
             </div>
           </div>

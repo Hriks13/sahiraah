@@ -8,38 +8,106 @@ import { AccountSettings } from "@/components/settings/AccountSettings";
 import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 import { HistorySettings } from "@/components/settings/HistorySettings";
 import { UserProfile } from "@/types/user";
-import { Facebook } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is logged in
-    const userStr = localStorage.getItem("sahiraah_user");
-    if (!userStr) {
-      navigate("/login");
-      return;
-    }
+    // Check if user is logged in with Supabase
+    const getSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error fetching session:", error.message);
+          navigate("/login");
+          return;
+        }
+        
+        if (!data.session) {
+          navigate("/login");
+          return;
+        }
+        
+        setUserId(data.session.user.id);
+        
+        // Fetch the user's profile from our profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error fetching user profile:", profileError);
+        }
+        
+        // If profile exists, use it; otherwise use the auth user data
+        if (profileData) {
+          setProfile({
+            id: data.session.user.id,
+            name: profileData.name || data.session.user.email?.split('@')[0] || 'User',
+            email: profileData.email || data.session.user.email || '',
+            location: profileData.location || '',
+            bio: profileData.bio || '',
+            profilePicture: data.session.user.user_metadata?.avatar_url || ''
+          });
+        } else {
+          // Create initial profile with data from auth
+          setProfile({
+            id: data.session.user.id,
+            name: data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
+            email: data.session.user.email || '',
+            location: '',
+            bio: '',
+            profilePicture: data.session.user.user_metadata?.avatar_url || ''
+          });
+          
+          // Insert initial profile
+          await supabase.from('user_profiles').insert({
+            id: data.session.user.id,
+            name: data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
+            email: data.session.user.email || ''
+          });
+        }
+      } catch (error) {
+        console.error("Error in session handling:", error);
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    try {
-      const userData = JSON.parse(userStr);
-      setProfile(userData);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      navigate("/login");
-    } finally {
-      setLoading(false);
-    }
+    getSession();
   }, [navigate]);
 
-  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+  const handleProfileUpdate = async (updatedProfile: UserProfile) => {
     try {
-      localStorage.setItem("sahiraah_user", JSON.stringify(updatedProfile));
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+      
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          name: updatedProfile.name,
+          email: updatedProfile.email,
+          location: updatedProfile.location,
+          bio: updatedProfile.bio
+        })
+        .eq('id', userId);
+      
+      if (error) {
+        throw error;
+      }
+      
       setProfile(updatedProfile);
       toast.success("Profile updated successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving profile:", error);
       toast.error("Failed to update profile");
       throw error;

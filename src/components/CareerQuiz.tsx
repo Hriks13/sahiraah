@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BookIcon, CodeIcon, UserIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface QuizProps {
   userId: string;
@@ -17,6 +19,7 @@ interface QuizProps {
 const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [answers, setAnswers] = useState<Record<string, string>>({
     "What are your favorite school subjects?": "",
     "What activities or hobbies do you enjoy most?": "",
@@ -24,6 +27,23 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     "Do you like working alone or in a team?": "",
     "Name a job you've imagined doing, even if just once.": "",
   });
+
+  // Verify authentication
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to take the career quiz",
+          variant: "destructive",
+        });
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   const questions = [
     {
@@ -75,27 +95,25 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       return;
     }
 
-    // Store the answer in "database" (would be Supabase in real implementation)
+    // Store the answer in Supabase
     try {
-      // Mock storing in Supabase
-      console.log("Storing answer:", {
-        user_id: userId,
-        question: questionText,
-        answer: answers[questionText],
-        timestamp: new Date().toISOString(),
-      });
-
-      // In a real implementation with Supabase:
-      /*
-      await supabase
-        .from('responses')
+      const { error } = await supabase
+        .from('user_quiz_responses')
         .insert({
           user_id: userId,
           question: questionText,
-          answer: answers[questionText],
-          timestamp: new Date().toISOString(),
+          answer: answers[questionText]
         });
-      */
+      
+      if (error) {
+        console.error("Error storing quiz response:", error);
+        toast({
+          title: "Something went wrong",
+          description: "Could not save your answer. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);

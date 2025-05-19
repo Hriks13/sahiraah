@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookIcon, HistoryIcon, ArrowRightIcon } from "lucide-react";
 import { CareerResult } from "@/types/user";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HistorySettingsProps {
   userId?: string;
@@ -12,20 +13,46 @@ interface HistorySettingsProps {
 
 export const HistorySettings = ({ userId }: HistorySettingsProps) => {
   const [careerHistory, setCareerHistory] = useState<CareerResult[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load career history from local storage for the specific user
-    if (userId) {
-      const historyStr = localStorage.getItem(`sahiraah_career_history_${userId}`);
-      if (historyStr) {
-        try {
-          const historyData = JSON.parse(historyStr);
-          setCareerHistory(historyData);
-        } catch (error) {
-          console.error("Error parsing career history data:", error);
+    const fetchCareerHistory = async () => {
+      if (!userId) return;
+      
+      try {
+        setLoading(true);
+        
+        // Fetch career history from Supabase
+        const { data, error } = await supabase
+          .from('user_career_history')
+          .select('*')
+          .eq('user_id', userId)
+          .order('timestamp', { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching career history:", error);
+          return;
         }
+        
+        if (data) {
+          // Transform to match our CareerResult type
+          const formattedHistory = data.map(item => ({
+            career: item.career,
+            reason: item.reason || '',
+            timestamp: item.timestamp,
+            isSelected: item.is_selected
+          }));
+          
+          setCareerHistory(formattedHistory);
+        }
+      } catch (error) {
+        console.error("Error in career history fetch:", error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+    
+    fetchCareerHistory();
   }, [userId]);
 
   return (
@@ -37,7 +64,11 @@ export const HistorySettings = ({ userId }: HistorySettingsProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {careerHistory.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-6">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-700 border-t-transparent rounded-full"></div>
+          </div>
+        ) : careerHistory.length > 0 ? (
           <div className="space-y-4">
             {careerHistory.map((result, index) => (
               <div key={index} className="border rounded-md p-4 space-y-2">
@@ -46,6 +77,9 @@ export const HistorySettings = ({ userId }: HistorySettingsProps) => {
                   <Badge className="bg-blue-100 text-blue-800">
                     {result.career}
                   </Badge>
+                  {result.isSelected && (
+                    <Badge className="bg-green-100 text-green-800">Current Selection</Badge>
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-gray-500">

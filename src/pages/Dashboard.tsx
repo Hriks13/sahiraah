@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import CareerQuiz from "@/components/CareerQuiz";
 import CareerRecommendations from "@/components/CareerRecommendations";
 import ExploreResources from "@/components/ExploreResources";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
@@ -22,22 +24,71 @@ const Dashboard = () => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Check if user is logged in
-    const userStr = localStorage.getItem("sahiraah_user");
-    if (!userStr) {
-      navigate("/login");
-      return;
-    }
+    // Check if user is logged in with Supabase
+    const getSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error fetching session:", error.message);
+          navigate("/login");
+          return;
+        }
+        
+        if (!data.session) {
+          navigate("/login");
+          return;
+        }
+        
+        // Fetch user profile
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        setUser({
+          id: data.session.user.id,
+          name: profileData?.name || data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
+          email: data.session.user.email || ''
+        });
 
-    try {
-      const userData = JSON.parse(userStr);
-      setUser(userData);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      navigate("/login");
-    } finally {
-      setLoading(false);
-    }
+        // Insert profile if it doesn't exist
+        if (!profileData) {
+          await supabase.from('user_profiles').insert({
+            id: data.session.user.id,
+            name: data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
+            email: data.session.user.email || ''
+          });
+        }
+      } catch (error) {
+        console.error("Error in session handling:", error);
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSession();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        if (event === 'SIGNED_IN' && currentSession) {
+          setUser({
+            id: currentSession.user.id,
+            name: currentSession.user.user_metadata?.full_name || currentSession.user.email?.split('@')[0] || 'User',
+            email: currentSession.user.email || ''
+          });
+        } else if (event === 'SIGNED_OUT') {
+          navigate('/login');
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleStartQuiz = () => {

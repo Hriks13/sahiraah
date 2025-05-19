@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdBanner from "@/components/AdBanner";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface RecommendationsProps {
   userAnswers: Record<string, string>;
@@ -18,6 +20,27 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
   const [selectedCareer, setSelectedCareer] = useState<number | null>(null);
   const [careerRoadmaps, setCareerRoadmaps] = useState<any[]>([]);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Check authentication
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to view career recommendations",
+          variant: "destructive",
+        });
+        navigate("/login");
+      } else {
+        setUserId(data.session.user.id);
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   useEffect(() => {
     // Rule-based career recommendation logic
@@ -288,25 +311,40 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
       });
     };
 
-    // Simulate processing delay
-    setTimeout(() => {
-      const results = analyzeResponses();
-      const roadmaps = defineRoadmaps(results);
-      setRecommendations(results);
-      setCareerRoadmaps(roadmaps);
-      setIsLoading(false);
-      
-      // In production with Supabase, we would save these recommendations
-      console.log("Would save to recommendations table:", {
-        user_id: "current-user-id",
-        career_1: results[0]?.career || "",
-        career_2: results[1]?.career || "",
-        career_3: results[2]?.career || "",
-        generated_at: new Date().toISOString(),
-      });
-      
-    }, 1500);
-  }, [userAnswers]);
+    // Simulate processing delay and save to database
+    const processResponses = async () => {
+      try {
+        const results = analyzeResponses();
+        const roadmaps = defineRoadmaps(results);
+        
+        setRecommendations(results);
+        setCareerRoadmaps(roadmaps);
+        
+        // Save recommendations to Supabase
+        if (userId) {
+          for (const result of results) {
+            await supabase.from('user_career_history').insert({
+              user_id: userId,
+              career: result.career,
+              reason: result.reason,
+              is_selected: false
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error processing responses:", error);
+        toast({
+          title: "Error generating recommendations",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    setTimeout(processResponses, 1500);
+  }, [userAnswers, userId, toast]);
 
   const getCareerIcon = (career: string) => {
     if (career.includes("Engineer") || career.includes("Data") || career.includes("UI/UX")) {
@@ -318,38 +356,55 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
     }
   };
 
-  const handleStartJourney = (index: number) => {
-    setSelectedCareer(index);
-    
-    // Save the selected career to localStorage
-    const careerData = {
-      career: recommendations[index].career,
-      reason: recommendations[index].reason,
-      timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem("sahiraah_user_career", JSON.stringify(careerData));
-    
-    // Also save to history
-    const historyStr = localStorage.getItem("sahiraah_career_history");
-    let history = [];
-    
-    if (historyStr) {
-      try {
-        history = JSON.parse(historyStr);
-      } catch (error) {
-        console.error("Error parsing history:", error);
-      }
+  const handleStartJourney = async (index: number) => {
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save your career selection",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
     }
     
-    history.push(careerData);
-    localStorage.setItem("sahiraah_career_history", JSON.stringify(history));
-    
-    toast({
-      title: "Career path selected!",
-      description: `You've started your journey towards becoming a ${recommendations[index].career}.`,
-    });
-    // In a real app, this would save the selection to the user's profile
+    try {
+      setSelectedCareer(index);
+      
+      // Update all career history entries to not selected
+      await supabase
+        .from('user_career_history')
+        .update({ is_selected: false })
+        .eq('user_id', userId);
+      
+      // Get the ID of the career to select
+      const { data } = await supabase
+        .from('user_career_history')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('career', recommendations[index].career)
+        .order('timestamp', { ascending: false })
+        .limit(1);
+      
+      if (data && data.length > 0) {
+        // Update this career to be selected
+        await supabase
+          .from('user_career_history')
+          .update({ is_selected: true })
+          .eq('id', data[0].id);
+      }
+      
+      toast({
+        title: "Career path selected!",
+        description: `You've started your journey towards becoming a ${recommendations[index].career}.`,
+      });
+    } catch (error) {
+      console.error("Error selecting career path:", error);
+      toast({
+        title: "Error",
+        description: "Failed to select career path. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
