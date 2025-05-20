@@ -6,6 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+// Helper function to clean up auth state
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -26,26 +45,39 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      // This would be replaced with actual Supabase auth
-      console.log("Signup with:", name, email, password);
+      // Clean up existing auth state
+      cleanupAuthState();
       
-      // Simulate successful signup
-      setTimeout(() => {
-        // Store user info in localStorage for demo purposes
-        localStorage.setItem("sahiraah_user", JSON.stringify({ 
-          id: "123", 
-          email,
-          name
-        }));
-        
-        toast.success("Account created successfully!");
-        navigate("/dashboard");
-        setIsLoading(false);
-      }, 1500);
+      // Try to sign out first to clear any existing sessions
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
       
-    } catch (error) {
+      // Sign up with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name
+          }
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        toast.success("Account created successfully! Please check your email to confirm your account.");
+        navigate("/login");
+      }
+    } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error("Failed to create account. Please try again.");
+      toast.error(error.message || "Failed to create account. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -120,11 +152,11 @@ const Signup = () => {
           </div>
           <div className="text-xs text-center text-gray-500">
             By signing up, you agree to our{" "}
-            <a href="#" className="underline hover:text-gray-700">
+            <a href="/terms" className="underline hover:text-gray-700">
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="#" className="underline hover:text-gray-700">
+            <a href="/privacy" className="underline hover:text-gray-700">
               Privacy Policy
             </a>
             .
