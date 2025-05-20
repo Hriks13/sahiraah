@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { BookOpenIcon, ListCheckIcon, BookIcon } from "lucide-react";
+import { BookOpenIcon, ListCheckIcon, BookIcon, BuildingIcon, TrendingUpIcon, GraduationCapIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface CareerGuideDetailProps {
   isOpen: boolean;
@@ -21,6 +22,10 @@ interface CareerGuideDetailProps {
     title: string;
     description: string;
     roles: string[];
+    indianContext?: string;
+    skills?: string[];
+    salaryRange?: string;
+    futureOutlook?: string;
     roadmap: {
       beginner: { resources: { title: string; link: string; platform: string }[] };
       intermediate: { resources: { title: string; link: string; platform: string }[] };
@@ -53,15 +58,70 @@ const CareerGuideDetail = ({ isOpen, onClose, career }: CareerGuideDetailProps) 
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mb-4">
-          <h3 className="text-md font-semibold text-blue-800 mb-2">Popular Roles</h3>
-          <div className="flex flex-wrap gap-2">
-            {career.roles.map((role, idx) => (
-              <span key={idx} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {role}
-              </span>
-            ))}
+        <div className="mb-6">
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <h3 className="text-md font-semibold text-blue-800 mb-2">Popular Roles</h3>
+              <div className="flex flex-wrap gap-2">
+                {career.roles.map((role, idx) => (
+                  <span key={idx} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    {role}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            {career.salaryRange && (
+              <div>
+                <h3 className="text-md font-semibold text-blue-800 mb-2">Salary Range in India</h3>
+                <div className="flex items-center">
+                  <TrendingUpIcon className="h-4 w-4 text-blue-700 mr-2" />
+                  <span className="text-blue-700">{career.salaryRange}</span>
+                </div>
+              </div>
+            )}
           </div>
+          
+          {career.indianContext && (
+            <Card className="bg-blue-50 mb-4">
+              <CardContent className="p-4">
+                <div className="flex items-start">
+                  <BuildingIcon className="h-5 w-5 text-blue-700 mt-0.5 mr-2" />
+                  <div>
+                    <h3 className="text-md font-semibold text-blue-800 mb-1">Indian Market Context</h3>
+                    <p className="text-blue-700">{career.indianContext}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {career.futureOutlook && (
+            <Card className="bg-yellow-50 mb-4">
+              <CardContent className="p-4">
+                <div className="flex items-start">
+                  <GraduationCapIcon className="h-5 w-5 text-yellow-700 mt-0.5 mr-2" />
+                  <div>
+                    <h3 className="text-md font-semibold text-blue-800 mb-1">Future Outlook</h3>
+                    <p className="text-blue-700">{career.futureOutlook}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {career.skills && (
+            <div className="mb-4">
+              <h3 className="text-md font-semibold text-blue-800 mb-2">Key Skills Required</h3>
+              <div className="flex flex-wrap gap-2">
+                {career.skills.map((skill, idx) => (
+                  <Badge key={idx} className="bg-blue-100 text-blue-800">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
         <Tabs defaultValue="beginner" className="w-full">
