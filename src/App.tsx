@@ -17,6 +17,7 @@ import Courses from "./pages/Courses";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Settings from "./pages/Settings";
+import Contact from "./pages/Contact";
 import { useEffect, useState } from "react";
 
 // Auth protected route component
@@ -70,6 +71,14 @@ const App = () => {
               element={
                 <Layout>
                   <About />
+                </Layout>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <Layout>
+                  <Contact />
                 </Layout>
               }
             />
