@@ -17,4 +17,5 @@ export interface CareerResult {
   career: string;
   reason: string;
   timestamp: string;
+  isSelected: boolean;
 }
