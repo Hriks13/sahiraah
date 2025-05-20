@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { BookIcon, HistoryIcon, ArrowRightIcon } from "lucide-react";
 import { CareerResult } from "@/types/user";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/toast/use-toast";
 
 interface HistorySettingsProps {
   userId?: string;
@@ -17,12 +18,15 @@ export const HistorySettings = ({ userId }: HistorySettingsProps) => {
 
   useEffect(() => {
     const fetchCareerHistory = async () => {
-      if (!userId) return;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
       
       try {
         setLoading(true);
         
-        // Fetch career history from Supabase
+        // Fetch career history from Supabase specifically for this user
         const { data, error } = await supabase
           .from('user_career_history')
           .select('*')
@@ -31,6 +35,11 @@ export const HistorySettings = ({ userId }: HistorySettingsProps) => {
         
         if (error) {
           console.error("Error fetching career history:", error);
+          toast({
+            title: "Error loading history",
+            description: "Could not load your career history. Please try again later.",
+            variant: "destructive",
+          });
           return;
         }
         
@@ -54,6 +63,28 @@ export const HistorySettings = ({ userId }: HistorySettingsProps) => {
     
     fetchCareerHistory();
   }, [userId]);
+
+  if (!userId) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Career Path History</CardTitle>
+          <CardDescription>
+            Please sign in to view your career history.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6">
+            <HistoryIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">Sign in to access your history</p>
+            <Button className="mt-4" asChild>
+              <a href="/login">Sign In</a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

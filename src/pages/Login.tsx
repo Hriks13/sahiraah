@@ -1,14 +1,16 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook, FaYahoo } from "react-icons/fa";
 
 // Helper function to clean up auth state
 const cleanupAuthState = () => {
@@ -35,7 +37,7 @@ const Login = () => {
   const [signupPassword, setSignupPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [socialLoading, setSocialLoading] = useState("");
   const navigate = useNavigate();
 
   // Check if already logged in
@@ -54,11 +56,7 @@ const Login = () => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast({
-        title: "Missing information",
-        description: "Please provide both email and password",
-        variant: "destructive",
-      });
+      toast.error("Please provide both email and password");
       return;
     }
     
@@ -68,7 +66,7 @@ const Login = () => {
       // Clean up existing auth state
       cleanupAuthState();
       
-      // Try to sign out first (global scope) to clear any existing sessions
+      // Try to sign out first to clear any existing sessions
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
@@ -86,20 +84,13 @@ const Login = () => {
       }
       
       if (data.user) {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
+        toast.success("Login successful! Welcome back!");
         // Use window.location for a full page refresh
         window.location.href = "/dashboard";
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -109,20 +100,12 @@ const Login = () => {
     e.preventDefault();
     
     if (!signupEmail || !signupPassword) {
-      toast({
-        title: "Missing information",
-        description: "Please provide both email and password",
-        variant: "destructive",
-      });
+      toast.error("Please provide both email and password");
       return;
     }
     
     if (signupPassword !== confirmPassword) {
-      toast({
-        title: "Password mismatch",
-        description: "Password and confirmation do not match",
-        variant: "destructive",
-      });
+      toast.error("Password and confirmation do not match");
       return;
     }
     
@@ -149,23 +132,47 @@ const Login = () => {
       }
       
       if (data.user) {
-        toast({
-          title: "Sign up successful",
-          description: "Welcome to SahiRaah! Please check your email to confirm your account.",
-        });
+        toast.success("Sign up successful! Please check your email to confirm your account.");
         setSignupEmail("");
         setSignupPassword("");
         setConfirmPassword("");
       }
     } catch (error: any) {
       console.error("Sign up error:", error);
-      toast({
-        title: "Sign up failed",
-        description: error.message || "Could not create account",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Could not create account");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'yahoo') => {
+    try {
+      setSocialLoading(provider);
+      
+      // Clean up existing auth state
+      cleanupAuthState();
+      
+      // Try to sign out first to clear any existing sessions
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error(`${provider} login error:`, error);
+      toast.error(error.message || `Could not login with ${provider}`);
+      setSocialLoading("");
     }
   };
 
@@ -221,6 +228,48 @@ const Login = () => {
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-[#f0f6ff] px-2 text-gray-500">Or continue with</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex items-center justify-center gap-2"
+                    onClick={() => handleSocialLogin('google')}
+                    disabled={!!socialLoading}
+                  >
+                    <FcGoogle className="h-5 w-5" />
+                    {socialLoading === 'google' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex items-center justify-center gap-2"
+                    onClick={() => handleSocialLogin('facebook')}
+                    disabled={!!socialLoading}
+                  >
+                    <FaFacebook className="h-5 w-5 text-blue-600" />
+                    {socialLoading === 'facebook' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex items-center justify-center gap-2"
+                    onClick={() => handleSocialLogin('yahoo')}
+                    disabled={!!socialLoading}
+                  >
+                    <FaYahoo className="h-5 w-5 text-purple-600" />
+                    {socialLoading === 'yahoo' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
@@ -266,6 +315,48 @@ const Login = () => {
                 >
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-[#f0f6ff] px-2 text-gray-500">Or sign up with</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex items-center justify-center gap-2"
+                    onClick={() => handleSocialLogin('google')}
+                    disabled={!!socialLoading}
+                  >
+                    <FcGoogle className="h-5 w-5" />
+                    {socialLoading === 'google' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex items-center justify-center gap-2"
+                    onClick={() => handleSocialLogin('facebook')}
+                    disabled={!!socialLoading}
+                  >
+                    <FaFacebook className="h-5 w-5 text-blue-600" />
+                    {socialLoading === 'facebook' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex items-center justify-center gap-2"
+                    onClick={() => handleSocialLogin('yahoo')}
+                    disabled={!!socialLoading}
+                  >
+                    <FaYahoo className="h-5 w-5 text-purple-600" />
+                    {socialLoading === 'yahoo' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+                  </Button>
+                </div>
               </form>
             </TabsContent>
           </Tabs>
@@ -273,9 +364,9 @@ const Login = () => {
         <CardFooter className="justify-center">
           <p className="text-sm text-gray-500">
             By continuing, you agree to our{' '}
-            <a href="/terms" className="text-blue-700 hover:underline">Terms</a>{' '}
+            <Link to="/terms" className="text-blue-700 hover:underline">Terms</Link>{' '}
             and{' '}
-            <a href="/privacy" className="text-blue-700 hover:underline">Privacy Policy</a>.
+            <Link to="/privacy" className="text-blue-700 hover:underline">Privacy Policy</Link>.
           </p>
         </CardFooter>
       </Card>

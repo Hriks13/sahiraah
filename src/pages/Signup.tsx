@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Separator } from "@/components/ui/separator";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook, FaYahoo } from "react-icons/fa";
 
 // Helper function to clean up auth state
 const cleanupAuthState = () => {
@@ -33,6 +36,7 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +83,37 @@ const Signup = () => {
       toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'yahoo') => {
+    try {
+      setSocialLoading(provider);
+      
+      // Clean up existing auth state
+      cleanupAuthState();
+      
+      // Try to sign out first to clear any existing sessions
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error(`${provider} login error:`, error);
+      toast.error(error.message || `Could not sign up with ${provider}`);
+      setSocialLoading("");
     }
   };
 
@@ -142,6 +177,48 @@ const Signup = () => {
               {isLoading ? "Creating Account..." : "Sign Up"}
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <Separator />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-blue-50 px-2 text-gray-500">Or sign up with</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <Button 
+              type="button"
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+              onClick={() => handleSocialLogin('google')}
+              disabled={!!socialLoading}
+            >
+              <FcGoogle className="h-5 w-5" />
+              {socialLoading === 'google' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+            </Button>
+            <Button 
+              type="button"
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+              onClick={() => handleSocialLogin('facebook')}
+              disabled={!!socialLoading}
+            >
+              <FaFacebook className="h-5 w-5 text-blue-600" />
+              {socialLoading === 'facebook' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+            </Button>
+            <Button 
+              type="button"
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+              onClick={() => handleSocialLogin('yahoo')}
+              disabled={!!socialLoading}
+            >
+              <FaYahoo className="h-5 w-5 text-purple-600" />
+              {socialLoading === 'yahoo' && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>}
+            </Button>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
@@ -152,13 +229,13 @@ const Signup = () => {
           </div>
           <div className="text-xs text-center text-gray-500">
             By signing up, you agree to our{" "}
-            <a href="/terms" className="underline hover:text-gray-700">
+            <Link to="/terms" className="underline hover:text-gray-700">
               Terms of Service
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a href="/privacy" className="underline hover:text-gray-700">
+            <Link to="/privacy" className="underline hover:text-gray-700">
               Privacy Policy
-            </a>
+            </Link>
             .
           </div>
         </CardFooter>
