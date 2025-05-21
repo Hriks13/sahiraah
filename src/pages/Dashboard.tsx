@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,6 @@ import CareerRecommendations from "@/components/CareerRecommendations";
 import ExploreResources from "@/components/ExploreResources";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import AdPlacement from "@/components/AdPlacement";
-import { useLanguage } from "@/hooks/useLanguage";
 
 interface User {
   id: string;
@@ -18,7 +17,6 @@ interface User {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [quizStarted, setQuizStarted] = useState(false);
@@ -134,21 +132,19 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="bg-white rounded-xl shadow p-6 mb-8">
           <h1 className="text-3xl font-bold text-blue-900 mb-2">
-            {t('welcome')}, {user?.name || "Student"}!
+            Welcome, {user?.name || "Student"}!
           </h1>
           <p className="text-blue-700 text-lg">
-            {t('dashboard_intro')}
+            Let's discover the career path that's perfectly aligned with your interests and strengths.
           </p>
         </div>
-
-        <AdPlacement location="header" className="mb-8" />
 
         {/* Quiz Section */}
         {quizCompleted ? (
           <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
         ) : quizStarted ? (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-blue-900 mb-6">{t('career_discovery')}</h2>
+            <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
             <CareerQuiz userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
           </div>
         ) : (
@@ -156,8 +152,8 @@ const Dashboard = () => {
             {/* Career Journey Card */}
             <Card className="bg-white shadow-md">
               <CardHeader>
-                <CardTitle className="text-blue-900">{t('begin_career_discovery')}</CardTitle>
-                <CardDescription>{t('take_assessment')}</CardDescription>
+                <CardTitle className="text-blue-900">Begin Your Career Discovery</CardTitle>
+                <CardDescription>Take our comprehensive assessment to get AI-powered recommendations</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col space-y-4 mb-6">
@@ -166,8 +162,8 @@ const Dashboard = () => {
                       1
                     </div>
                     <div>
-                      <h4 className="font-medium text-blue-900">{t('take_career_quiz')}</h4>
-                      <p className="text-sm text-blue-700">{t('answer_questions')}</p>
+                      <h4 className="font-medium text-blue-900">Take the Career Quiz</h4>
+                      <p className="text-sm text-blue-700">Answer questions about your interests and strengths</p>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -175,8 +171,8 @@ const Dashboard = () => {
                       2
                     </div>
                     <div>
-                      <h4 className="font-medium text-blue-900">{t('get_ai_analysis')}</h4>
-                      <p className="text-sm text-blue-700">{t('process_responses')}</p>
+                      <h4 className="font-medium text-blue-900">Get AI Analysis</h4>
+                      <p className="text-sm text-blue-700">Our algorithm processes your responses</p>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -184,8 +180,8 @@ const Dashboard = () => {
                       3
                     </div>
                     <div>
-                      <h4 className="font-medium text-blue-900">{t('explore_recommendations')}</h4>
-                      <p className="text-sm text-blue-700">{t('review_paths')}</p>
+                      <h4 className="font-medium text-blue-900">Explore Recommendations</h4>
+                      <p className="text-sm text-blue-700">Review personalized career paths</p>
                     </div>
                   </div>
                 </div>
@@ -195,7 +191,7 @@ const Dashboard = () => {
                   className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold w-full"
                   onClick={handleStartQuiz}
                 >
-                  {t('take_career_quiz')}
+                  Take Career Quiz
                 </Button>
               </CardFooter>
             </Card>
@@ -203,17 +199,17 @@ const Dashboard = () => {
             {/* Recommendations Preview Card */}
             <Card className="bg-white shadow-md">
               <CardHeader>
-                <CardTitle className="text-blue-900">{t('your_recommendations')}</CardTitle>
-                <CardDescription>{t('based_on_profile')}</CardDescription>
+                <CardTitle className="text-blue-900">Your Career Recommendations</CardTitle>
+                <CardDescription>Based on your profile and responses</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-10">
                   <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
                     <span className="text-blue-900 text-xl">🔎</span>
                   </div>
-                  <h4 className="text-lg font-medium text-blue-900 mb-2">{t('no_recommendations')}</h4>
+                  <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
                   <p className="text-blue-700 mb-4">
-                    {t('take_quiz')}
+                    Take the career quiz to get personalized career path recommendations
                   </p>
                 </div>
               </CardContent>
@@ -223,19 +219,15 @@ const Dashboard = () => {
                   className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
                   onClick={handleStartQuiz}
                 >
-                  {t('start_discovery')}
+                  Start Discovery Journey
                 </Button>
               </CardFooter>
             </Card>
           </div>
         )}
 
-        <AdPlacement location="content" className="my-8" />
-
         {/* Always show Explore Resources section */}
         <ExploreResources />
-        
-        <AdPlacement location="footer" className="mt-8" />
       </div>
     </div>
   );

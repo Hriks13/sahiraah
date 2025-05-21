@@ -1,4 +1,3 @@
-
 import {
   Sheet,
   SheetContent,
@@ -7,16 +6,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { ModeToggle } from "@/components/ModeToggle"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { Link } from "react-router-dom"
 import { AlignJustify } from "lucide-react"
 import LogoutButton from "@/components/LogoutButton";
-import LanguageSelector from "./LanguageSelector";
-import { useLanguage } from "@/hooks/useLanguage";
 
 const Navbar = () => {
-  const { t } = useLanguage();
-  
   return (
     <div className="bg-background py-4 border-b">
       <div className="container flex items-center justify-between">
@@ -27,22 +23,22 @@ const Navbar = () => {
         <NavigationMenu>
           <NavigationMenuList className="hidden md:flex items-center gap-4">
             <NavigationMenuItem>
-              <Link to="/dashboard">{t('dashboard')}</Link>
+              <Link to="/dashboard">Dashboard</Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/about">{t('about')}</Link>
+              <Link to="/about">About</Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/contact">{t('contact')}</Link>
+              <Link to="/contact">Contact</Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/settings">{t('settings')}</Link>
+              <Link to="/settings">Settings</Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <LogoutButton />
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <LanguageSelector />
+              <ModeToggle />
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
@@ -53,18 +49,18 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent className="w-full sm:w-3/4 md:w-2/5">
             <SheetHeader>
-              <SheetTitle>{t('menu')}</SheetTitle>
+              <SheetTitle>Menu</SheetTitle>
               <SheetDescription>
-                {t('navigate')}
+                Navigate through the app
               </SheetDescription>
             </SheetHeader>
             <div className="grid gap-4">
-              <Link to="/dashboard">{t('dashboard')}</Link>
-              <Link to="/about">{t('about')}</Link>
-              <Link to="/contact">{t('contact')}</Link>
-              <Link to="/settings">{t('settings')}</Link>
+              <Link to="/dashboard">Dashboard</Link>
+              <Link to="/about">About</Link>
+              <Link to="/contact">Contact</Link>
+              <Link to="/settings">Settings</Link>
               <LogoutButton />
-              <LanguageSelector />
+              <ModeToggle />
             </div>
           </SheetContent>
         </Sheet>

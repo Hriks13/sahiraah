@@ -1,95 +1,92 @@
 
-import React from 'react';
-import { useLanguage } from '@/hooks/useLanguage';
-import AdPlacement from '@/components/AdPlacement';
+import { Link } from "react-router-dom";
+import AdSenseAd from "@/components/AdSenseAd";
 
 const Privacy = () => {
-  const { t } = useLanguage();
-  
   return (
-    <div className="min-h-screen bg-background pt-10 pb-20">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-6 md:p-10">
-          <h1 className="text-3xl font-bold text-center mb-8">Privacy Policy</h1>
-
-          <AdPlacement location="header" />
+    <div className="min-h-screen py-6 bg-blue-50">
+      <div className="container mx-auto px-4 py-4">
+        <div className="bg-white rounded-lg shadow-md p-5 md:p-6">
+          <h1 className="text-3xl font-bold mb-4 text-blue-900">Privacy Policy – SahiRaah</h1>
+          <p className="text-gray-600 mb-4">Effective Date: 17/05/2025</p>
           
-          <div className="prose max-w-none">
-            <p className="mb-4">
-              At SahiRaah, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
-            </p>
+          <AdSenseAd adSlot="1234567890" className="mb-4" />
+          
+          <p className="mb-4">We take your privacy seriously. Here's how your data is handled:</p>
+          
+          <div className="space-y-4">
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">What We Collect</h2>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>Your quiz answers</li>
+                <li>Email and authentication data (if you create an account)</li>
+                <li>Name and other profile information you provide</li>
+                <li>Basic interaction data (to improve recommendations)</li>
+              </ul>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">1. Information We Collect</h2>
-            <p className="mb-4">
-              We may collect personal information that you voluntarily provide to us when you register with the website, express an interest in obtaining information about us or our products and services, or otherwise contact us. This information may include:
-            </p>
-            <ul className="list-disc pl-6 mb-4">
-              <li>Personal identifiers (name, email address)</li>
-              <li>Education information</li>
-              <li>Employment history</li>
-              <li>Career preferences and interests</li>
-              <li>Assessment responses</li>
-            </ul>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Why We Collect It</h2>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>To give personalized career suggestions based on your responses</li>
+                <li>To save your career history and recommendations for future reference</li>
+                <li>To improve the platform's accuracy and relevance</li>
+                <li>To provide support if needed</li>
+              </ul>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">2. How We Use Your Information</h2>
-            <p className="mb-4">
-              We use the information we collect in various ways, including to:
-            </p>
-            <ul className="list-disc pl-6 mb-4">
-              <li>Provide, operate, and maintain our website</li>
-              <li>Improve, personalize, and expand our website</li>
-              <li>Understand and analyze how you use our website</li>
-              <li>Develop new products, services, features, and functionality</li>
-              <li>Communicate with you to provide updates and other information</li>
-              <li>Generate personalized career recommendations</li>
-              <li>For compliance purposes, including enforcing our Terms of Service</li>
-            </ul>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">User-Specific Data</h2>
+              <p>All your quiz answers, career recommendations, and history are stored securely and tied specifically to your user account. Your data is kept private and is not shared with other users. Each user receives personalized recommendations based on their own responses.</p>
+            </section>
             
-            <AdPlacement location="content" />
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Data Storage</h2>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>All data is securely stored using Supabase cloud services with industry-standard encryption.</li>
+                <li>We implement strict access controls to protect your information.</li>
+                <li>We do not sell or share your personal data with advertisers or third parties.</li>
+              </ul>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">3. Information Sharing</h2>
-            <p className="mb-4">
-              We may share information we have collected in certain situations. Your information may be disclosed as follows:
-            </p>
-            <ul className="list-disc pl-6 mb-4">
-              <li>By Law or to Protect Rights: If required by law or to protect the rights, property, and safety of SahiRaah, our users, or others.</li>
-              <li>Third-Party Service Providers: We may share your information with third parties that perform services for us or on our behalf.</li>
-              <li>Marketing Communications: With your consent, we may share your information with third parties for marketing purposes.</li>
-            </ul>
+            <AdSenseAd adSlot="1234567890" className="my-4" />
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">4. Security of Your Information</h2>
-            <p className="mb-4">
-              We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that no security measures are perfect or impenetrable.
-            </p>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Social Login</h2>
+              <p>When you choose to sign in using social login options (Google, Facebook, or Yahoo), we receive basic profile information from those providers. We only use this information to create and authenticate your account. We do not post to your social media accounts or access your contacts without explicit permission.</p>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">5. User Rights</h2>
-            <p className="mb-4">
-              You have the right to access, update, or delete the information we have on you. You can:
-            </p>
-            <ul className="list-disc pl-6 mb-4">
-              <li>Request to access the personal information we hold about you</li>
-              <li>Request that we update or correct any personal information</li>
-              <li>Request that we delete your account and personal information</li>
-              <li>Opt-out of marketing communications</li>
-            </ul>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Cookies</h2>
+              <p>We use minimal cookies for improving performance and remembering your session. These are necessary for the proper functioning of our service.</p>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">6. Cookies</h2>
-            <p className="mb-4">
-              We use cookies and similar tracking technologies to track activity on our website and store certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
-            </p>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Data Access and Deletion</h2>
+              <p>You may request access to your data or ask for deletion by contacting <a href="mailto:support@sahiraah.in" className="text-blue-700 hover:text-blue-900">support@sahiraah.in</a>. You can also delete your account directly from your profile settings.</p>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">7. Changes to This Privacy Policy</h2>
-            <p className="mb-4">
-              We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
-            </p>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Children Under 13</h2>
+              <p>SahiRaah is intended for users aged 13 and above. Parental guidance is advised for younger users.</p>
+            </section>
             
-            <h2 className="text-xl font-semibold mt-6 mb-3">8. Contact Us</h2>
-            <p className="mb-4">
-              If you have questions or concerns about this Privacy Policy, please contact us at privacy@sahiraah.com.
-            </p>
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Security</h2>
+              <p>We follow industry-standard measures to protect your information including encryption, secure application design, and regular security audits.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-blue-800 mb-1">Updates to Privacy Policy</h2>
+              <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the effective date.</p>
+            </section>
           </div>
           
-          <AdPlacement location="footer" />
+          <div className="mt-6 text-center">
+            <Link to="/" className="text-blue-700 hover:text-blue-900 font-medium">
+              Return to Home
+            </Link>
+          </div>
         </div>
       </div>
     </div>

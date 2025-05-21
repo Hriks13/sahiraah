@@ -19,7 +19,6 @@ import Settings from "./pages/Settings";
 import Contact from "./pages/Contact";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
-import { LanguageProvider } from "./hooks/useLanguage";
 
 // Auth protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -73,88 +72,86 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <LanguageProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <SonnerToaster />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route
-                path="/"
-                element={
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <SonnerToaster />
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Layout>
+                  <Index />
+                </Layout>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <Layout>
+                  <About />
+                </Layout>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <Layout>
+                  <Contact />
+                </Layout>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
                   <Layout>
-                    <Index />
+                    <Dashboard />
                   </Layout>
-                }
-              />
-              <Route
-                path="/about"
-                element={
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
                   <Layout>
-                    <About />
+                    <Settings />
                   </Layout>
-                }
-              />
-              <Route
-                path="/contact"
-                element={
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/career-guides"
+              element={
+                <ProtectedRoute>
                   <Layout>
-                    <Contact />
+                    <CareerGuides />
                   </Layout>
-                }
-              />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Settings />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/career-guides"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <CareerGuides />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/courses"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Courses />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </LanguageProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Courses />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
