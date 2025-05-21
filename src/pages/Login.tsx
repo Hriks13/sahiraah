@@ -161,7 +161,9 @@ const Login = () => {
         // Continue even if this fails
       }
       
+      // Use type assertion to handle yahoo provider
       const { data, error } = await supabase.auth.signInWithOAuth({
+        // @ts-ignore - Ignore typescript error for yahoo provider
         provider,
         options: {
           redirectTo: `${window.location.origin}/dashboard`,

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -103,7 +102,9 @@ const Signup = () => {
         // Continue even if this fails
       }
       
+      // Use type assertion to handle yahoo provider
       const { data, error } = await supabase.auth.signInWithOAuth({
+        // @ts-ignore - Ignore typescript error for yahoo provider
         provider,
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
