@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,15 +18,37 @@ import Privacy from "./pages/Privacy";
 import Settings from "./pages/Settings";
 import Contact from "./pages/Contact";
 import { useEffect, useState } from "react";
+import { supabase } from "./integrations/supabase/client";
 
 // Auth protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
   useEffect(() => {
-    const checkAuth = () => {
-      const user = localStorage.getItem("sahiraah_user");
-      setIsAuthenticated(!!user);
+    const checkAuth = async () => {
+      try {
+        // Check for user in localStorage first (for faster access)
+        const user = localStorage.getItem("sahiraah_user");
+        
+        if (user) {
+          setIsAuthenticated(true);
+          return;
+        }
+        
+        // If no user in localStorage, check session from Supabase
+        const { data } = await supabase.auth.getSession();
+        
+        if (data.session) {
+          // Store user data in localStorage for future checks
+          localStorage.setItem("sahiraah_user", JSON.stringify(data.session.user));
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Authentication check error:", error);
+        setIsAuthenticated(false);
+      }
     };
     
     checkAuth();

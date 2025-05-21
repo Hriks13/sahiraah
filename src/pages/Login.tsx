@@ -47,7 +47,8 @@ const Login = () => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate("/dashboard");
+        // Directly navigate to dashboard when session exists
+        navigate("/dashboard", { replace: true });
       }
     };
     
@@ -86,8 +87,12 @@ const Login = () => {
       }
       
       if (data.user) {
+        // Store user data in localStorage for app-level access
+        localStorage.setItem("sahiraah_user", JSON.stringify(data.user));
+        
         toast.success("Login successful! Welcome back!");
-        // Use window.location for a full page refresh
+        
+        // Force a full page refresh and redirect to dashboard
         window.location.href = "/dashboard";
       }
     } catch (error: any) {
