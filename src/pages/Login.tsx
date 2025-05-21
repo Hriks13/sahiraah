@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,9 @@ const cleanupAuthState = () => {
     }
   });
 };
+
+// Define a type that includes 'yahoo' as a valid provider
+type ExtendedProvider = 'google' | 'facebook' | 'twitter' | 'apple' | 'github' | 'gitlab' | 'bitbucket' | 'azure' | 'discord' | 'linkedin' | 'slack' | 'spotify' | 'workos' | 'yahoo';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -145,7 +147,7 @@ const Login = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'yahoo') => {
+  const handleSocialLogin = async (provider: ExtendedProvider) => {
     try {
       setSocialLoading(provider);
       

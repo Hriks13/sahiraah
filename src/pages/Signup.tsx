@@ -29,6 +29,9 @@ const cleanupAuthState = () => {
   });
 };
 
+// Define a type that includes 'yahoo' as a valid provider
+type ExtendedProvider = 'google' | 'facebook' | 'twitter' | 'apple' | 'github' | 'gitlab' | 'bitbucket' | 'azure' | 'discord' | 'linkedin' | 'slack' | 'spotify' | 'workos' | 'yahoo';
+
 const Signup = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -86,7 +89,7 @@ const Signup = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'yahoo') => {
+  const handleSocialLogin = async (provider: ExtendedProvider) => {
     try {
       setSocialLoading(provider);
       
