@@ -1,3 +1,4 @@
+
 import {
   Sheet,
   SheetContent,
@@ -6,7 +7,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { ModeToggle } from "@/components/ModeToggle"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { Link } from "react-router-dom"
 import { AlignJustify } from "lucide-react"
@@ -37,9 +37,6 @@ const Navbar = () => {
             <NavigationMenuItem>
               <LogoutButton />
             </NavigationMenuItem>
-            <NavigationMenuItem>
-              <ModeToggle />
-            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -60,7 +57,6 @@ const Navbar = () => {
               <Link to="/contact">Contact</Link>
               <Link to="/settings">Settings</Link>
               <LogoutButton />
-              <ModeToggle />
             </div>
           </SheetContent>
         </Sheet>
