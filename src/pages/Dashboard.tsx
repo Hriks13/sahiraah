@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import CareerQuiz from "@/components/CareerQuiz";
 import CareerRecommendations from "@/components/CareerRecommendations";
 import ExploreResources from "@/components/ExploreResources";
+import AdBanner from "@/components/AdBanner";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -139,95 +139,114 @@ const Dashboard = () => {
           </p>
         </div>
 
+        {/* Top Dashboard Ad */}
+        <AdBanner size="leaderboard" className="mb-8" />
+
         {/* Quiz Section */}
         {quizCompleted ? (
-          <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
+          <>
+            <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
+            {/* Mid-Dashboard Ad */}
+            <AdBanner size="large-rectangle" className="my-8 flex justify-center" />
+          </>
         ) : quizStarted ? (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
             <CareerQuiz userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
+            {/* Quiz Section Ad */}
+            <AdBanner size="large-rectangle" className="mt-8 flex justify-center" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            {/* Career Journey Card */}
-            <Card className="bg-white shadow-md">
-              <CardHeader>
-                <CardTitle className="text-blue-900">Begin Your Career Discovery</CardTitle>
-                <CardDescription>Take our comprehensive assessment to get AI-powered recommendations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col space-y-4 mb-6">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
-                      1
+          <>
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              {/* Career Journey Card */}
+              <Card className="bg-white shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-blue-900">Begin Your Career Discovery</CardTitle>
+                  <CardDescription>Take our comprehensive assessment to get AI-powered recommendations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col space-y-4 mb-6">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
+                        1
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-blue-900">Take the Career Quiz</h4>
+                        <p className="text-sm text-blue-700">Answer questions about your interests and strengths</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Take the Career Quiz</h4>
-                      <p className="text-sm text-blue-700">Answer questions about your interests and strengths</p>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-blue-900">Get AI Analysis</h4>
+                        <p className="text-sm text-blue-700">Our algorithm processes your responses</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-blue-900">Explore Recommendations</h4>
+                        <p className="text-sm text-blue-700">Review personalized career paths</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
-                      2
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Get AI Analysis</h4>
-                      <p className="text-sm text-blue-700">Our algorithm processes your responses</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Explore Recommendations</h4>
-                      <p className="text-sm text-blue-700">Review personalized career paths</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold w-full"
-                  onClick={handleStartQuiz}
-                >
-                  Take Career Quiz
-                </Button>
-              </CardFooter>
-            </Card>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold w-full"
+                    onClick={handleStartQuiz}
+                  >
+                    Take Career Quiz
+                  </Button>
+                </CardFooter>
+              </Card>
 
-            {/* Recommendations Preview Card */}
-            <Card className="bg-white shadow-md">
-              <CardHeader>
-                <CardTitle className="text-blue-900">Your Career Recommendations</CardTitle>
-                <CardDescription>Based on your profile and responses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-10">
-                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-blue-900 text-xl">🔎</span>
-                  </div>
-                  <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
-                  <p className="text-blue-700 mb-4">
-                    Take the career quiz to get personalized career path recommendations
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
-                  onClick={handleStartQuiz}
-                >
-                  Start Discovery Journey
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
+              {/* Recommendations Preview Card with integrated ad space */}
+              <div className="space-y-4">
+                <Card className="bg-white shadow-md">
+                  <CardHeader>
+                    <CardTitle className="text-blue-900">Your Career Recommendations</CardTitle>
+                    <CardDescription>Based on your profile and responses</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-10">
+                      <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                        <span className="text-blue-900 text-xl">🔎</span>
+                      </div>
+                      <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
+                      <p className="text-blue-700 mb-4">
+                        Take the career quiz to get personalized career path recommendations
+                      </p>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      variant="outline" 
+                      className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
+                      onClick={handleStartQuiz}
+                    >
+                      Start Discovery Journey
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                {/* Sidebar Ad */}
+                <AdBanner size="large-rectangle" />
+              </div>
+            </div>
+          </>
         )}
 
         {/* Always show Explore Resources section */}
         <ExploreResources />
+        
+        {/* Bottom Dashboard Ad */}
+        <AdBanner size="leaderboard" className="mt-8" />
       </div>
     </div>
   );
