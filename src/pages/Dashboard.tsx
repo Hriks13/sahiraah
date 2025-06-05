@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -158,8 +159,9 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
+            {/* Symmetric Career Discovery and Recommendations Cards */}
             <div className="grid md:grid-cols-2 gap-8 mb-8">
-              {/* Career Journey Card */}
+              {/* Begin Your Career Discovery Card */}
               <Card className="bg-white shadow-md">
                 <CardHeader>
                   <CardTitle className="text-blue-900">Begin Your Career Discovery</CardTitle>
@@ -206,38 +208,38 @@ const Dashboard = () => {
                 </CardFooter>
               </Card>
 
-              {/* Recommendations Preview Card with integrated ad space */}
-              <div className="space-y-4">
-                <Card className="bg-white shadow-md">
-                  <CardHeader>
-                    <CardTitle className="text-blue-900">Your Career Recommendations</CardTitle>
-                    <CardDescription>Based on your profile and responses</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-10">
-                      <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-blue-900 text-xl">🔎</span>
-                      </div>
-                      <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
-                      <p className="text-blue-700 mb-4">
-                        Take the career quiz to get personalized career path recommendations
-                      </p>
+              {/* Your Career Recommendations Card */}
+              <Card className="bg-white shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-blue-900">Your Career Recommendations</CardTitle>
+                  <CardDescription>Based on your profile and responses</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-blue-900 text-xl">🔎</span>
                     </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      variant="outline" 
-                      className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
-                      onClick={handleStartQuiz}
-                    >
-                      Start Discovery Journey
-                    </Button>
-                  </CardFooter>
-                </Card>
-                
-                {/* Sidebar Ad */}
-                <AdBanner size="large-rectangle" />
-              </div>
+                    <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
+                    <p className="text-blue-700 mb-4">
+                      Take the career quiz to get personalized career path recommendations
+                    </p>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    variant="outline" 
+                    className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
+                    onClick={handleStartQuiz}
+                  >
+                    Start Discovery Journey
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            {/* Sidebar Ad below the symmetric cards */}
+            <div className="flex justify-center mb-8">
+              <AdBanner size="large-rectangle" />
             </div>
           </>
         )}
