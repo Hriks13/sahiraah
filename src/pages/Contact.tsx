@@ -158,12 +158,12 @@ const Contact = () => {
             <CardContent className="space-y-6">
               <div>
                 <h3 className="font-medium text-blue-800 mb-1">Email</h3>
-                <p className="text-gray-700">support@sahiraah.com</p>
+                <p className="text-gray-700">support@sahiraah.in</p>
               </div>
               
               <div>
                 <h3 className="font-medium text-blue-800 mb-1">Phone</h3>
-                <p className="text-gray-700">+91 (800) 123-4567</p>
+                <p className="text-gray-700">+91 6361749943</p>
               </div>
 
               <div>
