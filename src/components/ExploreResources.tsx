@@ -17,16 +17,9 @@ const ExploreResources = () => {
             <CardTitle className="text-[#1d3557]">Career Guides</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-[#1d3557] mb-4">
-              Explore comprehensive career roadmaps with step-by-step learning paths for Technology, Healthcare, Business, Creative Industries, and Education careers.
+            <p className="text-[#1d3557]">
+              Explore in-depth information about various career paths and industries.
             </p>
-            <ul className="text-sm text-blue-700 space-y-2">
-              <li>• Technology: Software Development, Data Science</li>
-              <li>• Healthcare: Medicine, Nursing, Administration</li>
-              <li>• Business: Finance, Marketing, Entrepreneurship</li>
-              <li>• Creative: Design, Media, Digital Arts</li>
-              <li>• Education: Teaching, Research, Training</li>
-            </ul>
           </CardContent>
           <CardFooter>
             <Button 
@@ -47,17 +40,9 @@ const ExploreResources = () => {
             <CardTitle className="text-[#1d3557]">Skill Development</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-[#1d3557] mb-4">
-              Access curated learning resources from top platforms including Coursera, edX, YouTube, and freeCodeCamp for hands-on skill building.
+            <p className="text-[#1d3557]">
+              Find courses and resources to build skills for your desired career path.
             </p>
-            <ul className="text-sm text-blue-700 space-y-2">
-              <li>• Web Development (HTML, CSS, JavaScript)</li>
-              <li>• Data Science & Python Programming</li>
-              <li>• Graphic Design & UI/UX</li>
-              <li>• Business Management & Leadership</li>
-              <li>• Mobile App Development</li>
-              <li>• Digital Marketing & Analytics</li>
-            </ul>
           </CardContent>
           <CardFooter>
             <Button 
@@ -79,7 +64,7 @@ const ExploreResources = () => {
           </CardHeader>
           <CardContent>
             <p className="text-[#1d3557]">
-              Connect with mentors and professionals in your field of interest through our upcoming networking platform.
+              Connect with mentors and professionals in your field of interest.
             </p>
           </CardContent>
           <CardFooter>
