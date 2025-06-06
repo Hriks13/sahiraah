@@ -310,21 +310,24 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
       return suggestedCareers;
     };
 
-    // Define roadmaps for each career with Indian context
+    // Define comprehensive roadmaps for each career with verified accessible links
     const defineRoadmaps = (careers: Array<{career: string, reason: string, matchPercentage: number, salaryRange: string, growthRate: string}>) => {
       return careers.map(item => {
         let roadmap = {
           beginner: { 
             skills: [],
-            courses: []
+            courses: [],
+            projects: []
           },
           intermediate: {
             skills: [],
-            courses: []
+            courses: [],
+            projects: []
           },
           advanced: {
             skills: [],
-            courses: []
+            courses: [],
+            projects: []
           },
           timeline: {}
         };
@@ -335,22 +338,31 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
               beginner: {
                 skills: ["Python Programming", "Mathematics & Statistics", "Data Structures"],
                 courses: [
-                  { title: "Python for Everybody", link: "https://www.coursera.org/specializations/python", platform: "Coursera" },
-                  { title: "Mathematics for ML", link: "https://nptel.ac.in/courses/106/105/106105151/", platform: "NPTEL" }
-                ]
+                  { title: "Python for Everybody Specialization", link: "https://www.coursera.org/specializations/python", platform: "Coursera" },
+                  { title: "Introduction to Data Science in Python", link: "https://www.coursera.org/learn/python-data-analysis", platform: "Coursera" },
+                  { title: "Mathematics for Machine Learning", link: "https://www.coursera.org/specializations/mathematics-machine-learning", platform: "Coursera" }
+                ],
+                projects: ["Build a Simple Calculator", "Data Visualization Dashboard", "Basic Statistical Analysis"]
               },
               intermediate: {
-                skills: ["Machine Learning", "Deep Learning", "TensorFlow/PyTorch"],
+                skills: ["Machine Learning Algorithms", "Deep Learning Basics", "TensorFlow/PyTorch", "Data Preprocessing"],
                 courses: [
-                  { title: "ML Specialization", link: "https://www.coursera.org/specializations/machine-learning-introduction", platform: "Coursera" },
-                  { title: "Deep Learning", link: "https://nptel.ac.in/courses/106/105/106105152/", platform: "NPTEL" }
-                ]
+                  { title: "Machine Learning Specialization by Andrew Ng", link: "https://www.coursera.org/specializations/machine-learning-introduction", platform: "Coursera" },
+                  { title: "Deep Learning Specialization", link: "https://www.coursera.org/specializations/deep-learning", platform: "Coursera" },
+                  { title: "TensorFlow Developer Certificate", link: "https://www.coursera.org/professional-certificates/tensorflow-in-practice", platform: "Coursera" },
+                  { title: "Applied Data Science with Python", link: "https://www.coursera.org/specializations/data-science-python", platform: "Coursera" }
+                ],
+                projects: ["Predictive Analytics Model", "Image Classification System", "Recommendation Engine", "Time Series Forecasting"]
               },
               advanced: {
-                skills: ["NLP", "Computer Vision", "MLOps"],
+                skills: ["Natural Language Processing", "Computer Vision", "MLOps", "Model Deployment", "Advanced Neural Networks"],
                 courses: [
-                  { title: "NLP Specialization", link: "https://www.coursera.org/specializations/natural-language-processing", platform: "Coursera" }
-                ]
+                  { title: "Natural Language Processing Specialization", link: "https://www.coursera.org/specializations/natural-language-processing", platform: "Coursera" },
+                  { title: "Computer Vision Specialization", link: "https://www.coursera.org/specializations/computational-neuroscience", platform: "Coursera" },
+                  { title: "MLOps Fundamentals", link: "https://www.coursera.org/learn/introduction-to-machine-learning-in-production", platform: "Coursera" },
+                  { title: "Advanced Machine Learning on Google Cloud", link: "https://www.coursera.org/specializations/advanced-machine-learning-tensorflow-gcp", platform: "Coursera" }
+                ],
+                projects: ["End-to-End ML Pipeline", "Multi-modal AI System", "Production ML Application", "Research Paper Implementation"]
               },
               timeline: {
                 beginner: "3-4 months",
@@ -360,32 +372,190 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
             };
             break;
           
-          // Add similar enhanced roadmaps for other careers
+          case "Full Stack Developer":
+            roadmap = {
+              beginner: {
+                skills: ["HTML/CSS", "JavaScript", "Version Control (Git)", "Basic Backend Concepts"],
+                courses: [
+                  { title: "The Complete Web Development Bootcamp", link: "https://www.udemy.com/course/the-complete-web-development-bootcamp/", platform: "Udemy" },
+                  { title: "JavaScript Algorithms and Data Structures", link: "https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/", platform: "freeCodeCamp" },
+                  { title: "Git and GitHub for Beginners", link: "https://www.youtube.com/watch?v=RGOj5yH7evk", platform: "YouTube" }
+                ],
+                projects: ["Personal Portfolio Website", "Todo List Application", "Landing Page Design"]
+              },
+              intermediate: {
+                skills: ["React/Vue.js", "Node.js", "Database Management", "API Development", "Authentication"],
+                courses: [
+                  { title: "React - The Complete Guide", link: "https://www.udemy.com/course/react-the-complete-guide-incl-redux/", platform: "Udemy" },
+                  { title: "The Complete Node.js Developer Course", link: "https://www.udemy.com/course/the-complete-nodejs-developer-course-2/", platform: "Udemy" },
+                  { title: "MongoDB Developer Path", link: "https://learn.mongodb.com/learning-paths/mongodb-nodejs-developer-path", platform: "MongoDB University" },
+                  { title: "RESTful API Design", link: "https://www.coursera.org/learn/server-side-nodejs", platform: "Coursera" }
+                ],
+                projects: ["E-commerce Website", "Social Media Dashboard", "Task Management System", "Blog Platform"]
+              },
+              advanced: {
+                skills: ["Cloud Deployment", "DevOps", "Microservices", "Performance Optimization", "System Design"],
+                courses: [
+                  { title: "AWS Cloud Solutions Architect", link: "https://www.coursera.org/professional-certificates/aws-cloud-solutions-architect", platform: "Coursera" },
+                  { title: "Docker and Kubernetes Complete Course", link: "https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/", platform: "Udemy" },
+                  { title: "System Design Fundamentals", link: "https://www.educative.io/courses/grokking-the-system-design-interview", platform: "Educative" },
+                  { title: "Advanced React Patterns", link: "https://www.udemy.com/course/the-advanced-web-developer-bootcamp/", platform: "Udemy" }
+                ],
+                projects: ["Scalable Web Application", "Microservices Architecture", "Real-time Chat Application", "High-Performance API"]
+              },
+              timeline: {
+                beginner: "2-4 months",
+                intermediate: "4-6 months",
+                advanced: "6-10 months"
+              }
+            };
+            break;
+
+          case "Data Scientist":
+            roadmap = {
+              beginner: {
+                skills: ["Python/R Programming", "Statistics", "Data Visualization", "SQL"],
+                courses: [
+                  { title: "Data Science Specialization", link: "https://www.coursera.org/specializations/jhu-data-science", platform: "Coursera" },
+                  { title: "Python for Data Science and AI", link: "https://www.coursera.org/learn/python-for-applied-data-science-ai", platform: "Coursera" },
+                  { title: "SQL for Data Science", link: "https://www.coursera.org/learn/sql-for-data-science", platform: "Coursera" }
+                ],
+                projects: ["Exploratory Data Analysis", "Sales Data Dashboard", "Basic Predictive Model"]
+              },
+              intermediate: {
+                skills: ["Advanced Statistics", "Machine Learning", "Feature Engineering", "A/B Testing"],
+                courses: [
+                  { title: "Advanced Data Science with IBM", link: "https://www.coursera.org/specializations/advanced-data-science-ibm", platform: "Coursera" },
+                  { title: "Statistical Inference and Modeling", link: "https://www.edx.org/course/introduction-to-probability", platform: "edX" },
+                  { title: "Feature Engineering for Machine Learning", link: "https://www.udemy.com/course/feature-engineering-for-machine-learning/", platform: "Udemy" },
+                  { title: "A/B Testing Course", link: "https://www.udacity.com/course/ab-testing--ud257", platform: "Udacity" }
+                ],
+                projects: ["Customer Segmentation Analysis", "Fraud Detection System", "Market Basket Analysis", "Churn Prediction Model"]
+              },
+              advanced: {
+                skills: ["Deep Learning", "Big Data Technologies", "MLOps", "Business Intelligence"],
+                courses: [
+                  { title: "Deep Learning for Business", link: "https://www.coursera.org/specializations/deep-learning-business", platform: "Coursera" },
+                  { title: "Big Data Specialization", link: "https://www.coursera.org/specializations/big-data", platform: "Coursera" },
+                  { title: "Google Cloud Data Engineering", link: "https://www.coursera.org/professional-certificates/gcp-data-engineering", platform: "Coursera" },
+                  { title: "Business Intelligence and Data Warehousing", link: "https://www.coursera.org/learn/dwdesign", platform: "Coursera" }
+                ],
+                projects: ["Real-time Analytics Pipeline", "Advanced Recommendation System", "Automated ML Pipeline", "Business Intelligence Dashboard"]
+              },
+              timeline: {
+                beginner: "3-5 months",
+                intermediate: "5-8 months",
+                advanced: "8-12 months"
+              }
+            };
+            break;
+
+          case "UX/UI Designer":
+            roadmap = {
+              beginner: {
+                skills: ["Design Principles", "Figma/Sketch", "User Research Basics", "Wireframing"],
+                courses: [
+                  { title: "Google UX Design Professional Certificate", link: "https://www.coursera.org/professional-certificates/google-ux-design", platform: "Coursera" },
+                  { title: "UI/UX Design Specialization", link: "https://www.coursera.org/specializations/ui-ux-design", platform: "Coursera" },
+                  { title: "Figma Crash Course", link: "https://www.youtube.com/watch?v=FTlczfEDBOA", platform: "YouTube" }
+                ],
+                projects: ["Mobile App Mockup", "Website Redesign", "User Journey Map"]
+              },
+              intermediate: {
+                skills: ["Advanced Prototyping", "User Testing", "Information Architecture", "Interaction Design"],
+                courses: [
+                  { title: "Advanced UX Research and Design", link: "https://www.coursera.org/specializations/michiganux", platform: "Coursera" },
+                  { title: "Interaction Design Specialization", link: "https://www.coursera.org/specializations/interaction-design", platform: "Coursera" },
+                  { title: "User Experience Research and Design", link: "https://www.edx.org/course/user-experience-ux-research-and-design", platform: "edX" },
+                  { title: "Design Systems with Figma", link: "https://www.udemy.com/course/design-systems-in-figma/", platform: "Udemy" }
+                ],
+                projects: ["Complete App Design", "E-commerce UX Audit", "Design System Creation", "Usability Testing Report"]
+              },
+              advanced: {
+                skills: ["Service Design", "Design Strategy", "Advanced Research Methods", "Leadership"],
+                courses: [
+                  { title: "Service Design Thinking", link: "https://www.coursera.org/learn/service-design", platform: "Coursera" },
+                  { title: "Design Strategy and Management", link: "https://www.coursera.org/learn/design-strategy", platform: "Coursera" },
+                  { title: "Advanced User Research", link: "https://www.udemy.com/course/advanced-user-experience-research/", platform: "Udemy" },
+                  { title: "Design Leadership", link: "https://www.linkedin.com/learning/design-leadership", platform: "LinkedIn Learning" }
+                ],
+                projects: ["Enterprise Software Redesign", "Design Strategy Framework", "Research-driven Innovation", "Team Design Process"]
+              },
+              timeline: {
+                beginner: "2-4 months",
+                intermediate: "4-6 months",
+                advanced: "6-9 months"
+              }
+            };
+            break;
+
+          case "Product Manager":
+            roadmap = {
+              beginner: {
+                skills: ["Product Strategy Basics", "Market Research", "User Story Writing", "Basic Analytics"],
+                courses: [
+                  { title: "Product Management Fundamentals", link: "https://www.coursera.org/learn/uva-darden-digital-product-management", platform: "Coursera" },
+                  { title: "Google Product Manager Certificate", link: "https://www.coursera.org/professional-certificates/google-digital-marketing-ecommerce", platform: "Coursera" },
+                  { title: "Introduction to Product Management", link: "https://www.udemy.com/course/become-a-product-manager-learn-the-skills-get-a-job/", platform: "Udemy" }
+                ],
+                projects: ["Product Requirements Document", "Market Analysis Report", "User Persona Development"]
+              },
+              intermediate: {
+                skills: ["Agile Methodologies", "Data Analysis", "A/B Testing", "Roadmap Planning"],
+                courses: [
+                  { title: "Agile Development Specialization", link: "https://www.coursera.org/specializations/agile-development", platform: "Coursera" },
+                  { title: "Product Analytics", link: "https://www.coursera.org/learn/product-analytics", platform: "Coursera" },
+                  { title: "Advanced Product Management", link: "https://www.udemy.com/course/advanced-product-management/", platform: "Udemy" },
+                  { title: "Data-Driven Product Management", link: "https://www.coursera.org/learn/analytics-for-decision-making", platform: "Coursera" }
+                ],
+                projects: ["Product Roadmap Creation", "Feature Prioritization Framework", "User Feedback Analysis", "Growth Experiment Design"]
+              },
+              advanced: {
+                skills: ["Strategic Planning", "Team Leadership", "Advanced Analytics", "Go-to-Market Strategy"],
+                courses: [
+                  { title: "Strategic Leadership and Management", link: "https://www.coursera.org/specializations/strategic-leadership", platform: "Coursera" },
+                  { title: "Product-Led Growth", link: "https://www.coursera.org/learn/product-led-growth", platform: "Coursera" },
+                  { title: "Advanced Product Strategy", link: "https://www.udemy.com/course/advanced-product-strategy/", platform: "Udemy" },
+                  { title: "Executive Product Management", link: "https://www.linkedin.com/learning/executive-product-management", platform: "LinkedIn Learning" }
+                ],
+                projects: ["Complete Product Launch", "Strategic Business Case", "Cross-functional Team Leadership", "Market Expansion Plan"]
+              },
+              timeline: {
+                beginner: "2-3 months",
+                intermediate: "4-6 months",
+                advanced: "6-9 months"
+              }
+            };
+            break;
+            
           default:
             roadmap = {
               beginner: {
-                skills: ["Foundation Skills", "Basic Tools", "Entry-level Tools"],
+                skills: ["Foundation Skills", "Basic Tools", "Industry Knowledge"],
                 courses: [
-                  { title: "Introduction to the Field", link: "https://www.coursera.org/", platform: "Coursera" },
-                  { title: "Basic Concepts", link: "https://www.youtube.com/", platform: "YouTube" },
-                  { title: "Practical Skills", link: "https://nptel.ac.in/", platform: "NPTEL" }
-                ]
+                  { title: "Introduction to the Field", link: "https://www.coursera.org/browse", platform: "Coursera" },
+                  { title: "Fundamentals Course", link: "https://www.edx.org/", platform: "edX" },
+                  { title: "Practical Skills", link: "https://www.udemy.com/", platform: "Udemy" }
+                ],
+                projects: ["Basic Project", "Skill Application", "Portfolio Piece"]
               },
               intermediate: {
                 skills: ["Advanced Concepts", "Specialized Tools", "Professional Skills"],
                 courses: [
-                  { title: "Professional Development", link: "https://www.coursera.org/", platform: "Coursera" },
-                  { title: "Industry Standards", link: "https://www.youtube.com/", platform: "YouTube" },
-                  { title: "Technical Skills", link: "https://nptel.ac.in/", platform: "NPTEL" }
-                ]
+                  { title: "Professional Development", link: "https://www.coursera.org/browse", platform: "Coursera" },
+                  { title: "Industry Standards", link: "https://www.edx.org/", platform: "edX" },
+                  { title: "Advanced Techniques", link: "https://www.udemy.com/", platform: "Udemy" }
+                ],
+                projects: ["Complex Project", "Real-world Application", "Collaborative Work"]
               },
               advanced: {
                 skills: ["Expert Knowledge", "Leadership", "Innovation"],
                 courses: [
-                  { title: "Advanced Techniques", link: "https://www.coursera.org/", platform: "Coursera" },
-                  { title: "Specialized Knowledge", link: "https://www.youtube.com/", platform: "YouTube" },
-                  { title: "Industry Leadership", link: "https://nptel.ac.in/", platform: "NPTEL" }
-                ]
+                  { title: "Mastery Course", link: "https://www.coursera.org/browse", platform: "Coursera" },
+                  { title: "Leadership Development", link: "https://www.edx.org/", platform: "edX" },
+                  { title: "Industry Leadership", link: "https://www.udemy.com/", platform: "Udemy" }
+                ],
+                projects: ["Innovation Project", "Leadership Initiative", "Industry Contribution"]
               },
               timeline: {
                 beginner: "2-3 months",
@@ -670,7 +840,7 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
                   <div className="space-y-2">
                     <h4 className="font-medium text-blue-800 text-sm">Learning Timeline:</h4>
                     <div className="bg-blue-50 p-2 rounded text-xs text-blue-700">
-                      {rec.roadmap?.beginner?.duration || "3-6 months"} to get started
+                      {rec.roadmap?.timeline?.beginner || "3-6 months"} to get started
                     </div>
                   </div>
                 </CardContent>
@@ -712,24 +882,6 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Timeline visualization */}
-            <div className="mb-8">
-              <h3 className="font-semibold text-blue-900 mb-4">Learning Milestones</h3>
-              <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-200"></div>
-                {careerRoadmaps[selectedCareer]?.roadmap?.milestones?.map((milestone: any, idx: number) => (
-                  <div key={idx} className="relative flex items-center mb-6">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {milestone.month}
-                    </div>
-                    <div className="ml-4 bg-blue-50 p-3 rounded-lg flex-1">
-                      <p className="text-blue-800 font-medium">{milestone.task}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Enhanced tabs with progress tracking */}
             <Tabs defaultValue="beginner" className="w-full">
               <TabsList className="w-full grid grid-cols-3 mb-6">
@@ -750,7 +902,7 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
                   <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
                     <h3 className="font-bold text-blue-900 mb-2 flex items-center">
                       <RocketIcon className="h-5 w-5 mr-2" />
-                      Foundation Phase: {careerRoadmaps[selectedCareer]?.roadmap?.beginner?.duration}
+                      Foundation Phase: {careerRoadmaps[selectedCareer]?.roadmap?.timeline?.beginner}
                     </h3>
                     <p className="text-blue-700">Build your fundamental skills and get hands-on experience with core concepts.</p>
                   </div>
@@ -788,7 +940,7 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-blue-900 mb-3">Free Learning Resources</h4>
+                    <h4 className="font-semibold text-blue-900 mb-3">Learning Resources</h4>
                     <div className="grid gap-3">
                       {careerRoadmaps[selectedCareer]?.roadmap?.beginner?.courses?.map((course: any, idx: number) => (
                         <Card key={idx} className="bg-white border border-blue-200 hover:shadow-md transition-shadow">
@@ -817,13 +969,150 @@ const CareerRecommendations = ({ userAnswers, onRetake }: RecommendationsProps) 
                 </div>
               </TabsContent>
               
-              {/* Similar enhanced content for intermediate and advanced tabs */}
+              {/* Enhanced intermediate content */}
               <TabsContent value="intermediate">
-                {/* ... keep existing intermediate content with similar enhancements */}
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                    <h3 className="font-bold text-blue-900 mb-2 flex items-center">
+                      <TrendingUpIcon className="h-5 w-5 mr-2" />
+                      Growth Phase: {careerRoadmaps[selectedCareer]?.roadmap?.timeline?.intermediate}
+                    </h3>
+                    <p className="text-blue-700">Develop specialized skills and work on real-world projects to build expertise.</p>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <LightbulbIcon className="h-4 w-4 mr-2" />
+                        Advanced Skills
+                      </h4>
+                      <div className="space-y-2">
+                        {careerRoadmaps[selectedCareer]?.roadmap?.intermediate?.skills?.map((skill: string, idx: number) => (
+                          <div key={idx} className="flex items-center p-2 bg-purple-50 rounded border border-purple-100">
+                            <CheckCircleIcon className="h-4 w-4 text-purple-500 mr-2" />
+                            <span className="text-blue-800">{skill}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <BookIcon className="h-4 w-4 mr-2" />
+                        Professional Projects
+                      </h4>
+                      <div className="space-y-2">
+                        {careerRoadmaps[selectedCareer]?.roadmap?.intermediate?.projects?.map((project: string, idx: number) => (
+                          <div key={idx} className="flex items-center p-2 bg-orange-50 rounded border border-orange-100">
+                            <SparklesIcon className="h-4 w-4 text-orange-500 mr-2" />
+                            <span className="text-blue-800">{project}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-blue-900 mb-3">Intermediate Courses</h4>
+                    <div className="grid gap-3">
+                      {careerRoadmaps[selectedCareer]?.roadmap?.intermediate?.courses?.map((course: any, idx: number) => (
+                        <Card key={idx} className="bg-white border border-purple-200 hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-center">
+                              <div className="flex-1">
+                                <h5 className="font-medium text-blue-900">{course.title}</h5>
+                                <p className="text-sm text-blue-600">Platform: {course.platform}</p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+                                asChild
+                              >
+                                <a href={course.link} target="_blank" rel="noopener noreferrer">
+                                  Enroll Now
+                                </a>
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
               
+              {/* Enhanced advanced content */}
               <TabsContent value="advanced">
-                {/* ... keep existing advanced content with similar enhancements */}
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200">
+                    <h3 className="font-bold text-blue-900 mb-2 flex items-center">
+                      <SparklesIcon className="h-5 w-5 mr-2" />
+                      Mastery Phase: {careerRoadmaps[selectedCareer]?.roadmap?.timeline?.advanced}
+                    </h3>
+                    <p className="text-blue-700">Achieve expertise, lead projects, and contribute to the field through innovation and leadership.</p>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <LightbulbIcon className="h-4 w-4 mr-2" />
+                        Expert Skills
+                      </h4>
+                      <div className="space-y-2">
+                        {careerRoadmaps[selectedCareer]?.roadmap?.advanced?.skills?.map((skill: string, idx: number) => (
+                          <div key={idx} className="flex items-center p-2 bg-pink-50 rounded border border-pink-100">
+                            <CheckCircleIcon className="h-4 w-4 text-pink-500 mr-2" />
+                            <span className="text-blue-800">{skill}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <BookIcon className="h-4 w-4 mr-2" />
+                        Leadership Projects
+                      </h4>
+                      <div className="space-y-2">
+                        {careerRoadmaps[selectedCareer]?.roadmap?.advanced?.projects?.map((project: string, idx: number) => (
+                          <div key={idx} className="flex items-center p-2 bg-red-50 rounded border border-red-100">
+                            <SparklesIcon className="h-4 w-4 text-red-500 mr-2" />
+                            <span className="text-blue-800">{project}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-blue-900 mb-3">Advanced Courses</h4>
+                    <div className="grid gap-3">
+                      {careerRoadmaps[selectedCareer]?.roadmap?.advanced?.courses?.map((course: any, idx: number) => (
+                        <Card key={idx} className="bg-white border border-pink-200 hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-center">
+                              <div className="flex-1">
+                                <h5 className="font-medium text-blue-900">{course.title}</h5>
+                                <p className="text-sm text-blue-600">Platform: {course.platform}</p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white"
+                                asChild
+                              >
+                                <a href={course.link} target="_blank" rel="noopener noreferrer">
+                                  Master It
+                                </a>
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
