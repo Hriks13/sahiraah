@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BookIcon, CodeIcon, UserIcon, BrainCogIcon, LightbulbIcon, GraduationCapIcon } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { BookIcon, CodeIcon, UserIcon, BrainCogIcon, LightbulbIcon, GraduationCapIcon, RocketIcon, SparklesIcon, TrendingUpIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -17,14 +18,16 @@ interface QuizProps {
 }
 
 const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(-1); // Start at -1 for intro screen
   const [userName, setUserName] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
-  const [questionCount, setQuestionCount] = useState(12); // Dynamic question count
+  const [questionCount, setQuestionCount] = useState(12);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizStarted, setQuizStarted] = useState(false);
+  const [introStep, setIntroStep] = useState(0);
+  const [skillInterests, setSkillInterests] = useState<string[]>([]);
 
   // Verify authentication
   useEffect(() => {
@@ -43,7 +46,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     checkAuth();
   }, [navigate, toast]);
 
-  // Basic questions for all students
+  // Enhanced base questions with better categorization
   const baseQuestions = [
     {
       question: "What's your name?",
@@ -55,7 +58,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     {
       question: "What is your current education level?",
       type: "radio",
-      options: ["10th Standard", "PU/11th-12th", "Diploma"],
+      options: ["10th Standard", "PU/11th-12th", "Diploma", "Undergraduate", "Graduate"],
       icon: <GraduationCapIcon className="h-5 w-5 text-blue-700" />,
       category: "personal",
     },
@@ -67,20 +70,27 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       category: "interests",
     },
     {
-      question: "Do you prefer working with numbers, words, or visuals?",
+      question: "What type of activities energize you the most?",
       type: "radio",
-      options: ["Numbers", "Words", "Visuals", "A mix of these"],
+      options: [
+        "Solving complex problems and puzzles",
+        "Creating and designing new things", 
+        "Helping and teaching others",
+        "Leading teams and projects",
+        "Analyzing data and finding patterns"
+      ],
       icon: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
-      category: "skills",
+      category: "personality",
     },
     {
       question: "How do you approach solving complex problems?",
       type: "radio",
       options: [
-        "Break down into smaller parts",
-        "Search for patterns",
-        "Use creative thinking",
-        "Ask for help and collaborate"
+        "Break down into smaller, manageable parts",
+        "Look for patterns and connections",
+        "Think creatively and outside the box",
+        "Research and gather information first",
+        "Collaborate with others for ideas"
       ],
       icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
       category: "analytical",
@@ -93,9 +103,15 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       category: "interests",
     },
     {
-      question: "How do you prefer learning new things?",
+      question: "In which environment do you learn and work best?",
       type: "radio",
-      options: ["Visual learning", "Hands-on experience", "Reading books", "Watching videos/tutorials"],
+      options: [
+        "Quiet, focused individual work",
+        "Collaborative team environment", 
+        "Dynamic, fast-paced setting",
+        "Structured, organized environment",
+        "Flexible, creative workspace"
+      ],
       icon: <BookIcon className="h-5 w-5 text-blue-700" />,
       category: "learning",
     },
@@ -106,197 +122,140 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         "Technology and coding projects",
         "Creative and design projects",
         "Research and analysis projects", 
-        "Social and community projects"
+        "Social impact and community projects",
+        "Business and entrepreneurial projects"
       ],
       icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
       category: "interests",
     },
     {
-      question: "When working in a team, what role do you usually take?",
+      question: "When working in a team, what role do you naturally take?",
       type: "radio",
-      options: ["Leader", "Creative thinker", "Organizer/planner", "Support person", "Technical expert"],
+      options: [
+        "The strategic leader who guides direction",
+        "The creative innovator with new ideas", 
+        "The detail-oriented organizer",
+        "The supportive collaborator",
+        "The technical problem-solver"
+      ],
       icon: <UserIcon className="h-5 w-5 text-blue-700" />,
       category: "skills",
     },
     {
-      question: "How do you feel about learning new technologies?",
+      question: "How excited are you about learning cutting-edge technologies?",
       type: "radio",
       options: [
-        "Very excited - I love trying new tech",
-        "Comfortable - I can adapt quickly",
-        "Neutral - I'll learn if needed",
-        "Hesitant - I prefer familiar technologies"
+        "Extremely excited - I love being on the cutting edge",
+        "Very interested - I adapt quickly to new tech",
+        "Moderately interested - I'll learn what's needed",
+        "Somewhat hesitant - I prefer proven technologies",
+        "Not very interested - I focus on other skills"
       ],
       icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
       category: "mindset",
-    },
-    {
-      question: "If you had to solve this sequence: 2, 6, 12, 20, ?, what would be the next number?",
-      type: "radio",
-      options: ["30", "28", "32", "36"],
-      icon: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
-      category: "logical",
-      correctAnswer: "30",
-    },
-    {
-      question: "If a project isn't going as planned, what's your typical response?",
-      type: "radio",
-      options: [
-        "Try different approaches until something works",
-        "Research more to understand the problem better",
-        "Ask for help from others",
-        "Take a break and come back with fresh perspective"
-      ],
-      icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
-      category: "problem-solving",
-    },
-    {
-      question: "What technological innovations interest you the most?",
-      type: "radio",
-      options: [
-        "Artificial Intelligence & Machine Learning",
-        "Renewable Energy & Sustainability",
-        "Robotics & Automation",
-        "Healthcare & Biotechnology",
-        "Space Exploration & Astronomy"
-      ],
-      icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-      category: "interests",
-    },
-    {
-      question: "How comfortable are you with expressing ideas through writing or speaking?",
-      type: "radio",
-      options: [
-        "Very comfortable with both",
-        "Strong in writing, less in speaking",
-        "Strong in speaking, less in writing",
-        "Still developing both skills"
-      ],
-      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
-      category: "communication",
-    },
-    {
-      question: "When you encounter a setback, how do you typically respond?",
-      type: "radio",
-      options: [
-        "See it as a learning opportunity",
-        "Feel discouraged but try again",
-        "Seek advice on how to improve",
-        "Prefer to switch to something else"
-      ],
-      icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
-      category: "mindset",
-    },
-    {
-      question: "What aspects of your studies or hobbies do others often praise you for?",
-      type: "text",
-      placeholder: "E.g., Creativity, Problem-solving, Attention to detail...",
-      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
-      category: "strengths",
-    },
-    {
-      question: "What kind of career would you find most meaningful?",
-      type: "radio",
-      options: [
-        "Solving technical challenges",
-        "Creating innovative products",
-        "Helping and teaching others",
-        "Building sustainable solutions",
-        "Leading important projects"
-      ],
-      icon: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
-      category: "values",
-    },
-    {
-      question: "Have you already explored or tried any specific career areas?",
-      type: "text",
-      placeholder: "Any internships, courses, or personal projects...",
-      icon: <BookIcon className="h-5 w-5 text-blue-700" />,
-      category: "experience",
     }
-  ];
-  
-  // Advanced logical/analytical questions that might be added based on student responses
-  const advancedQuestions = [
-    {
-      question: "What would you do if you identified a more efficient way to complete a group task?",
-      type: "radio",
-      options: [
-        "Immediately suggest the improvement to everyone",
-        "Test it privately first to confirm it works",
-        "Discuss it one-on-one with the team leader",
-        "Implement it in your portion and demonstrate the benefits"
-      ],
-      icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
-      category: "problem-solving",
-    },
-    {
-      question: "If you could design an app to solve a problem, what would it do?",
-      type: "textarea",
-      placeholder: "Describe your app idea and what problem it would solve...",
-      icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-      category: "creative",
-    },
-    {
-      question: "Which of these coding activities interests you most?",
-      type: "radio",
-      options: [
-        "Creating websites or mobile apps",
-        "Analyzing data to find patterns",
-        "Building AI systems that can learn",
-        "Securing systems against hackers",
-        "None - I'm not interested in coding"
-      ],
-      icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-      category: "tech-interests",
-    },
   ];
 
-  // Dynamically determine questions based on previous answers
-  const getQuestions = () => {
-    // Start with base questions
-    let questionSet = [...baseQuestions];
+  // Enhanced adaptive questions based on responses
+  const getAdaptiveQuestions = () => {
+    const adaptiveQuestions = [];
     
-    // Add advanced questions based on education level and previous answers
-    if (answers["What is your current education level?"] === "PU/11th-12th" || 
-        answers["What is your current education level?"] === "Diploma") {
-      questionSet = [...questionSet, ...advancedQuestions];
-    }
-    
-    // If they show interest in technology, add more tech questions
-    if (answers["How do you feel about learning new technologies?"] === "Very excited - I love trying new tech") {
-      questionSet.push({
-        question: "Which specific tech area would you like to explore further?",
+    // Technology interest branch
+    if (answers["How excited are you about learning cutting-edge technologies?"]?.includes("Extremely excited") ||
+        answers["How excited are you about learning cutting-edge technologies?"]?.includes("Very interested")) {
+      adaptiveQuestions.push({
+        question: "Which emerging technology area interests you most?",
         type: "radio",
         options: [
-          "Web/Mobile Development",
-          "Data Science & Analytics",
-          "Cybersecurity",
-          "AI/Machine Learning",
-          "Game Development",
-          "IoT & Embedded Systems"
+          "Artificial Intelligence & Machine Learning",
+          "Blockchain & Web3 Technologies",
+          "Internet of Things (IoT) & Smart Devices",
+          "Cybersecurity & Ethical Hacking",
+          "Augmented/Virtual Reality",
+          "Quantum Computing"
         ],
-        icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-        category: "tech-specifics",
+        icon: <RocketIcon className="h-5 w-5 text-blue-700" />,
+        category: "tech-specialization",
       });
     }
 
-    return questionSet;
+    // Creative interest branch
+    if (answers["What kind of projects excite you the most?"]?.includes("Creative") ||
+        answers["What type of activities energize you the most?"]?.includes("Creating")) {
+      adaptiveQuestions.push({
+        question: "What type of creative work appeals to you most?",
+        type: "radio",
+        options: [
+          "Digital design and user experiences",
+          "Content creation and storytelling",
+          "Visual arts and graphic design",
+          "Music and audio production",
+          "Video and multimedia production",
+          "Game design and interactive media"
+        ],
+        icon: <SparklesIcon className="h-5 w-5 text-blue-700" />,
+        category: "creative-specialization",
+      });
+    }
+
+    // Leadership interest branch
+    if (answers["When working in a team, what role do you naturally take?"]?.includes("strategic leader") ||
+        answers["What type of activities energize you the most?"]?.includes("Leading")) {
+      adaptiveQuestions.push({
+        question: "What type of leadership role interests you most?",
+        type: "radio",
+        options: [
+          "Tech startup founder or entrepreneur",
+          "Project manager coordinating teams",
+          "Product manager driving innovation",
+          "Team lead in engineering/development",
+          "Business strategist and consultant",
+          "Social impact leader"
+        ],
+        icon: <TrendingUpIcon className="h-5 w-5 text-blue-700" />,
+        category: "leadership-style",
+      });
+    }
+
+    // Analytical thinking branch
+    if (answers["What type of activities energize you the most?"]?.includes("Analyzing data") ||
+        answers["How do you approach solving complex problems?"]?.includes("patterns")) {
+      adaptiveQuestions.push({
+        question: "What type of data analysis interests you most?",
+        type: "radio",
+        options: [
+          "Business intelligence and market analysis",
+          "Scientific research and experimentation",
+          "Financial modeling and risk analysis",
+          "Social media and behavioral analytics",
+          "Healthcare and medical data analysis",
+          "Environmental and sustainability metrics"
+        ],
+        icon: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
+        category: "analytical-focus",
+      });
+    }
+
+    return adaptiveQuestions;
   };
-  
-  const questions = getQuestions();
+
+  const getAllQuestions = () => {
+    const adaptive = getAdaptiveQuestions();
+    return [...baseQuestions, ...adaptive];
+  };
+
+  const questions = getAllQuestions();
 
   const handleInputChange = (value: string) => {
-    if (!quizStarted && currentQuestion === 0) {
+    if (currentQuestion === 0) {
       setUserName(value);
     }
     
     const questionText = questions[currentQuestion].question;
     setAnswers({ ...answers, [questionText]: value });
     
-    // Adjust question count based on engagement
+    // Dynamic question count adjustment based on engagement
     if (currentQuestion === 5) {
-      // If detailed answers to open-ended questions, increase question count
       if (value.length > 50) {
         setQuestionCount(Math.min(questionCount + 2, questions.length));
       }
@@ -313,13 +272,6 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         variant: "destructive",
       });
       return;
-    }
-
-    // Record the first two answers specially
-    if (currentQuestion === 0) {
-      setUserName(answers[questionText]);
-    } else if (currentQuestion === 1) {
-      setEducationLevel(answers[questionText]);
     }
 
     // Store the answer in Supabase
@@ -342,27 +294,24 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         return;
       }
 
-      // If this isn't the welcome screen and quiz hasn't started yet
-      if (currentQuestion === 1 && !quizStarted) {
-        setQuizStarted(true);
+      // Record education level
+      if (currentQuestion === 1) {
+        setEducationLevel(answers[questionText]);
       }
 
-      // Dynamic question count adjustment based on engagement
+      // Dynamic question count adjustment based on engagement patterns
       if (currentQuestion === 7) {
-        // Based on pattern of answers, adjust remaining questions
-        let uniqueResponses = new Set(Object.values(answers)).size;
-        // If varied responses (engaged user), add more questions
-        if (uniqueResponses >= 5) {
+        const uniqueResponses = new Set(Object.values(answers)).size;
+        if (uniqueResponses >= 6) {
           setQuestionCount(Math.min(questionCount + 3, questions.length)); 
         } else {
-          setQuestionCount(Math.max(questionCount - 2, 8)); // Minimum 8 questions
+          setQuestionCount(Math.max(questionCount - 1, 8));
         }
       }
 
       if (currentQuestion < Math.min(questionCount, questions.length) - 1) {
         setCurrentQuestion(currentQuestion + 1);
       } else {
-        // Quiz completed
         onComplete(answers);
       }
     } catch (error) {
@@ -375,36 +324,91 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     }
   };
 
-  const question = questions[currentQuestion];
-  
-  // Welcome screen
-  if (currentQuestion === 0 && !quizStarted) {
-    return (
-      <Card className="bg-white shadow-md">
-        <CardContent className="pt-6">
-          <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold text-blue-900 mb-4">Welcome to SahiRaah Career Guidance</h2>
-            <p className="text-blue-700 mb-4">
-              This personalized assessment will help you discover future-proof career paths aligned with your skills,
-              interests, and learning potential.
-            </p>
-            <div className="flex items-center justify-center mb-6">
-              <BookIcon className="h-12 w-12 text-yellow-500 mr-2" />
-            </div>
-            <p className="text-blue-900 text-xl mb-6">Let's start with your name:</p>
+  const startQuiz = () => {
+    setQuizStarted(true);
+    setCurrentQuestion(0);
+  };
 
-            <Input
-              value={answers[question.question] || ""}
-              onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="Enter your name"
-              className="w-full max-w-md mx-auto mb-6"
-            />
+  const nextIntroStep = () => {
+    if (introStep < 2) {
+      setIntroStep(introStep + 1);
+    } else {
+      startQuiz();
+    }
+  };
+
+  // Enhanced introduction flow
+  if (!quizStarted) {
+    const introContent = [
+      {
+        title: "Welcome to SahiRaah",
+        subtitle: "AI-Powered Career Discovery Platform",
+        content: "Discover your perfect career path with our intelligent assessment system designed specifically for Indian students.",
+        icon: <RocketIcon className="h-16 w-16 text-yellow-500" />,
+        highlights: ["Personalized AI Analysis", "Future-Ready Careers", "Industry-Specific Roadmaps"]
+      },
+      {
+        title: "How Our Assessment Works",
+        subtitle: "Smart, Adaptive & Personalized",
+        content: "Our AI adapts questions based on your responses, ensuring we understand your unique strengths and interests.",
+        icon: <BrainCogIcon className="h-16 w-16 text-blue-500" />,
+        highlights: ["Dynamic Question Flow", "Real-time Analysis", "Behavioral Insights"]
+      },
+      {
+        title: "What You'll Receive",
+        subtitle: "Comprehensive Career Guidance",
+        content: "Get detailed career recommendations, visual progress tracking, and step-by-step learning roadmaps.",
+        icon: <SparklesIcon className="h-16 w-16 text-green-500" />,
+        highlights: ["Career Matches", "Skill Roadmaps", "Learning Resources"]
+      }
+    ];
+
+    const currentIntro = introContent[introStep];
+
+    return (
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 shadow-xl border-0">
+        <CardContent className="pt-8 pb-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              {currentIntro.icon}
+            </div>
+            
+            <h1 className="text-3xl font-bold text-blue-900 mb-2">{currentIntro.title}</h1>
+            <h2 className="text-xl text-blue-700 mb-6">{currentIntro.subtitle}</h2>
+            
+            <p className="text-blue-800 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+              {currentIntro.content}
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-4 mb-8">
+              {currentIntro.highlights.map((highlight, idx) => (
+                <div key={idx} className="bg-white/70 p-4 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-center mb-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  </div>
+                  <p className="text-blue-800 font-medium">{highlight}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center items-center space-x-2 mb-6">
+              {introContent.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-3 h-3 rounded-full ${
+                    idx === introStep ? 'bg-yellow-500' : 'bg-blue-300'
+                  }`}
+                />
+              ))}
+            </div>
 
             <Button 
-              onClick={handleNext} 
-              className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold px-8"
+              onClick={nextIntroStep}
+              size="lg"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-blue-900 font-semibold px-8 py-3 text-lg shadow-lg"
             >
-              Start Assessment
+              {introStep < 2 ? "Continue" : "Start Your Journey"} 
+              <RocketIcon className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </CardContent>
@@ -412,34 +416,63 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     );
   }
 
+  const question = questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / questionCount) * 100;
+  
   return (
-    <Card className="bg-white shadow-md">
+    <Card className="bg-white shadow-lg border border-blue-100">
       <CardContent className="pt-6">
+        {/* Enhanced progress indicator */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-blue-700">
+              Question {currentQuestion + 1} of {questionCount}
+            </span>
+            <span className="text-sm text-blue-600">{Math.round(progress)}% Complete</span>
+          </div>
+          <Progress value={progress} className="h-3 bg-blue-50" />
+        </div>
+
         {userName && (
-          <div className="mb-4 pb-4 border-b border-gray-200">
-            <p className="text-blue-800">
-              {currentQuestion === 1 
-                ? `Hi ${userName}! Let's understand your background better.` 
-                : `${userName}, let's continue your career discovery journey...`}
+          <div className="mb-6 pb-4 border-b border-gray-200 bg-blue-50 p-4 rounded-lg">
+            <p className="text-blue-800 font-medium">
+              {currentQuestion <= 2
+                ? `Hi ${userName}! Let's understand your background and interests.` 
+                : `Great progress, ${userName}! Let's explore your career potential...`}
             </p>
           </div>
         )}
         
         <div className="mb-6">
           <div className="flex items-center mb-4">
-            {question.icon}
-            <h3 className="text-lg font-semibold text-blue-900 ml-2">
-              Question {currentQuestion + 1} of {questionCount}
-            </h3>
+            <div className="bg-blue-100 p-2 rounded-full mr-3">
+              {question.icon}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900">
+                {question.category === "personal" && "About You"}
+                {question.category === "interests" && "Your Interests"}
+                {question.category === "skills" && "Your Skills"}
+                {question.category === "analytical" && "Problem Solving"}
+                {question.category === "learning" && "Learning Style"}
+                {question.category === "mindset" && "Your Mindset"}
+                {question.category === "personality" && "Personality"}
+                {question.category === "tech-specialization" && "Tech Focus"}
+                {question.category === "creative-specialization" && "Creative Focus"}
+                {question.category === "leadership-style" && "Leadership Style"}
+                {question.category === "analytical-focus" && "Analytics Focus"}
+              </h3>
+            </div>
           </div>
-          <p className="text-blue-900 text-xl mb-6">{question.question}</p>
+          
+          <p className="text-blue-900 text-xl mb-6 font-medium">{question.question}</p>
 
           {question.type === "text" && (
             <Input
               value={answers[question.question] || ""}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder={question.placeholder}
-              className="w-full"
+              className="w-full text-lg p-4 border-2 border-blue-200 focus:border-blue-500 rounded-lg"
             />
           )}
 
@@ -448,7 +481,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
               value={answers[question.question] || ""}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder={question.placeholder}
-              className="w-full"
+              className="w-full text-lg p-4 border-2 border-blue-200 focus:border-blue-500 rounded-lg min-h-[120px]"
             />
           )}
 
@@ -456,12 +489,12 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
             <RadioGroup
               value={answers[question.question] || ""}
               onValueChange={(value) => handleInputChange(value)}
-              className="space-y-3"
+              className="space-y-4"
             >
               {question.options?.map((option) => (
-                <div key={option} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={option} />
-                  <Label htmlFor={option} className="text-blue-800">{option}</Label>
+                <div key={option} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 border border-gray-200 hover:border-blue-300 transition-all">
+                  <RadioGroupItem value={option} id={option} className="text-blue-600" />
+                  <Label htmlFor={option} className="text-blue-800 font-medium cursor-pointer flex-1">{option}</Label>
                 </div>
               ))}
             </RadioGroup>
@@ -471,25 +504,15 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         <div className="flex justify-end">
           <Button 
             onClick={handleNext} 
-            className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold"
+            size="lg"
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-blue-900 font-semibold px-8 py-3"
           >
             {currentQuestion < Math.min(questionCount, questions.length) - 1 ? (
-              "Next Question"
+              <>Next Question <RocketIcon className="ml-2 h-4 w-4" /></>
             ) : (
-              <span className="flex items-center">
-                Complete
-              </span>
+              <>Get My Results <SparklesIcon className="ml-2 h-4 w-4" /></>
             )}
           </Button>
-        </div>
-
-        <div className="mt-4 flex justify-center">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-yellow-500 h-2.5 rounded-full"
-              style={{ width: `${((currentQuestion + 1) / questionCount) * 100}%` }}
-            ></div>
-          </div>
         </div>
       </CardContent>
     </Card>
