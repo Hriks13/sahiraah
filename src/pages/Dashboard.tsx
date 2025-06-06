@@ -140,22 +140,22 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Top Dashboard Ad */}
-        <AdBanner size="leaderboard" className="mb-8" />
+        {/* Top Dashboard Ad - Career focused */}
+        <AdBanner size="leaderboard" className="mb-8" educationalCategory="career" />
 
         {/* Quiz Section */}
         {quizCompleted ? (
           <>
             <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
-            {/* Mid-Dashboard Ad */}
-            <AdBanner size="large-rectangle" className="my-8 flex justify-center" />
+            {/* Mid-Dashboard Ad - Skills focused */}
+            <AdBanner size="large-rectangle" className="my-8 flex justify-center" educationalCategory="skills" />
           </>
         ) : quizStarted ? (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
             <CareerQuiz userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
-            {/* Quiz Section Ad */}
-            <AdBanner size="large-rectangle" className="mt-8 flex justify-center" />
+            {/* Quiz Section Ad - Courses focused */}
+            <AdBanner size="large-rectangle" className="mt-8 flex justify-center" educationalCategory="courses" />
           </div>
         ) : (
           <>
@@ -237,9 +237,9 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {/* Sidebar Ad below the symmetric cards */}
+            {/* Sidebar Ad below the symmetric cards - General educational */}
             <div className="flex justify-center mb-8">
-              <AdBanner size="large-rectangle" />
+              <AdBanner size="large-rectangle" educationalCategory="general" />
             </div>
           </>
         )}
@@ -247,8 +247,8 @@ const Dashboard = () => {
         {/* Always show Explore Resources section */}
         <ExploreResources />
         
-        {/* Bottom Dashboard Ad */}
-        <AdBanner size="leaderboard" className="mt-8" />
+        {/* Bottom Dashboard Ad - Courses focused */}
+        <AdBanner size="leaderboard" className="mt-8" educationalCategory="courses" />
       </div>
     </div>
   );

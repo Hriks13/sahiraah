@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
@@ -50,7 +51,7 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-foreground [&_.recharts-cartesian-axis-tick_text]:font-medium [&_.recharts-cartesian-axis-tick_text]:text-xs [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/30 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border/30 [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none [&_.recharts-text]:fill-foreground [&_.recharts-text]:font-medium [&_.recharts-label]:fill-foreground [&_.recharts-label]:font-semibold [&_.recharts-legend-item-text]:fill-foreground [&_.recharts-legend-item-text]:font-medium",
           className
         )}
         {...props}
@@ -89,6 +90,35 @@ ${colorConfig
     return color ? `  --color-${key}: ${color};` : null
   })
   .join("\n")}
+}
+
+${prefix} [data-chart=${id}] .recharts-text {
+  fill: hsl(var(--foreground));
+  font-weight: 500;
+  font-size: 12px;
+}
+
+${prefix} [data-chart=${id}] .recharts-cartesian-axis-tick text {
+  fill: hsl(var(--foreground));
+  font-weight: 500;
+  font-size: 11px;
+}
+
+${prefix} [data-chart=${id}] .recharts-label {
+  fill: hsl(var(--foreground));
+  font-weight: 600;
+  font-size: 12px;
+}
+
+${prefix} [data-chart=${id}] .recharts-legend-item-text {
+  fill: hsl(var(--foreground)) !important;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+${prefix} [data-chart=${id}] .recharts-cartesian-grid line {
+  stroke: hsl(var(--border));
+  opacity: 0.3;
 }
 `
           )
@@ -146,7 +176,7 @@ const ChartTooltipContent = React.forwardRef<
 
       if (labelFormatter) {
         return (
-          <div className={cn("font-medium", labelClassName)}>
+          <div className={cn("font-semibold text-foreground", labelClassName)}>
             {labelFormatter(value, payload)}
           </div>
         )
@@ -156,7 +186,7 @@ const ChartTooltipContent = React.forwardRef<
         return null
       }
 
-      return <div className={cn("font-medium", labelClassName)}>{value}</div>
+      return <div className={cn("font-semibold text-foreground", labelClassName)}>{value}</div>
     }, [
       label,
       labelFormatter,
@@ -177,7 +207,7 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border bg-background/95 backdrop-blur-sm px-3 py-2 text-sm shadow-xl",
           className
         )}
       >
@@ -232,12 +262,12 @@ const ChartTooltipContent = React.forwardRef<
                     >
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
-                        <span className="text-muted-foreground">
+                        <span className="text-muted-foreground font-medium">
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
                       {item.value && (
-                        <span className="font-mono font-medium tabular-nums text-foreground">
+                        <span className="font-mono font-semibold tabular-nums text-foreground">
                           {item.value.toLocaleString()}
                         </span>
                       )}
@@ -304,7 +334,9 @@ const ChartLegendContent = React.forwardRef<
                   }}
                 />
               )}
-              {itemConfig?.label}
+              <span className="text-foreground font-medium text-sm">
+                {itemConfig?.label}
+              </span>
             </div>
           )
         })}
