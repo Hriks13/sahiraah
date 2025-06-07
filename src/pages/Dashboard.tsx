@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ const Dashboard = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in with Supabase
@@ -40,6 +40,9 @@ const Dashboard = () => {
           navigate("/login");
           return;
         }
+        
+        // Set authenticated state for ad display
+        setIsAuthenticated(true);
         
         // Fetch user profile
         const { data: profileData } = await supabase
@@ -76,12 +79,14 @@ const Dashboard = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         if (event === 'SIGNED_IN' && currentSession) {
+          setIsAuthenticated(true);
           setUser({
             id: currentSession.user.id,
             name: currentSession.user.user_metadata?.full_name || currentSession.user.email?.split('@')[0] || 'User',
             email: currentSession.user.email || ''
           });
         } else if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
           navigate('/login');
         }
       }
@@ -140,22 +145,28 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Top Dashboard Ad - Career focused */}
-        <AdBanner size="leaderboard" className="mb-8" educationalCategory="career" />
+        {/* Top Dashboard Ad - Career focused (Only after login) */}
+        {isAuthenticated && (
+          <AdBanner size="leaderboard" className="mb-8" educationalCategory="career" />
+        )}
 
         {/* Quiz Section */}
         {quizCompleted ? (
           <>
             <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
-            {/* Mid-Dashboard Ad - Skills focused */}
-            <AdBanner size="large-rectangle" className="my-8 flex justify-center" educationalCategory="skills" />
+            {/* Quiz Results Ad - Skills focused */}
+            {isAuthenticated && (
+              <AdBanner size="large-rectangle" className="my-8 flex justify-center" educationalCategory="skills" />
+            )}
           </>
         ) : quizStarted ? (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
             <CareerQuiz userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
             {/* Quiz Section Ad - Courses focused */}
-            <AdBanner size="large-rectangle" className="mt-8 flex justify-center" educationalCategory="courses" />
+            {isAuthenticated && (
+              <AdBanner size="large-rectangle" className="mt-8 flex justify-center" educationalCategory="courses" />
+            )}
           </div>
         ) : (
           <>
@@ -237,18 +248,22 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {/* Sidebar Ad below the symmetric cards - General educational */}
-            <div className="flex justify-center mb-8">
-              <AdBanner size="large-rectangle" educationalCategory="general" />
-            </div>
+            {/* Sidebar Ad below the symmetric cards - General educational (Only after login) */}
+            {isAuthenticated && (
+              <div className="flex justify-center mb-8">
+                <AdBanner size="large-rectangle" educationalCategory="general" />
+              </div>
+            )}
           </>
         )}
 
         {/* Always show Explore Resources section */}
         <ExploreResources />
         
-        {/* Bottom Dashboard Ad - Courses focused */}
-        <AdBanner size="leaderboard" className="mt-8" educationalCategory="courses" />
+        {/* Bottom Dashboard Ad - Courses focused (Only after login) */}
+        {isAuthenticated && (
+          <AdBanner size="leaderboard" className="mt-8" educationalCategory="courses" />
+        )}
       </div>
     </div>
   );

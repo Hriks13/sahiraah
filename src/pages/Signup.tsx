@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook, FaYahoo } from "react-icons/fa";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  handleSecureOAuthLogin, 
+  handleSecureSignup, 
+  handleOAuthCallback 
+} from "@/utils/authUtils";
 
 // Helper function to clean up auth state
 const cleanupAuthState = () => {
@@ -40,85 +44,54 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState("");
 
+  // Check if already logged in or handle OAuth callback
+  useEffect(() => {
+    const init = async () => {
+      // Handle OAuth callback first
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('code')) {
+        const result = await handleOAuthCallback();
+        if (result.success) {
+          return; // Will redirect to dashboard
+        }
+      }
+
+      // Check existing session
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate("/dashboard", { replace: true });
+      }
+    };
+    
+    init();
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password || !name) {
+      return;
+    }
+    
     if (password !== confirmPassword) {
-      toast.error("Passwords don't match.");
       return;
     }
 
     setIsLoading(true);
-
-    try {
-      // Clean up existing auth state
-      cleanupAuthState();
-      
-      // Try to sign out first to clear any existing sessions
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
-      // Sign up with Supabase
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name
-          }
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data.user) {
-        toast.success("Account created successfully! Please check your email to confirm your account.");
-        navigate("/login");
-      }
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account. Please try again.");
-    } finally {
-      setIsLoading(false);
+    const result = await handleSecureSignup(email, password, name);
+    if (result.success) {
+      navigate("/login");
     }
+    setIsLoading(false);
   };
 
-  const handleSocialLogin = async (provider: ExtendedProvider) => {
-    try {
-      setSocialLoading(provider);
-      
-      // Clean up existing auth state
-      cleanupAuthState();
-      
-      // Try to sign out first to clear any existing sessions
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
-      // Use type assertion to handle yahoo provider
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        // @ts-ignore - Ignore typescript error for yahoo provider
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error(`${provider} login error:`, error);
-      toast.error(error.message || `Could not sign up with ${provider}`);
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'yahoo') => {
+    setSocialLoading(provider);
+    const result = await handleSecureOAuthLogin(provider);
+    if (!result.success) {
       setSocialLoading("");
     }
+    // If successful, the function will redirect
   };
 
   return (
@@ -140,6 +113,7 @@ const Signup = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -151,6 +125,7 @@ const Signup = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -161,6 +136,7 @@ const Signup = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -171,6 +147,7 @@ const Signup = () => {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <Button 
@@ -195,7 +172,7 @@ const Signup = () => {
             <Button 
               type="button"
               variant="outline"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 hover:bg-blue-100"
               onClick={() => handleSocialLogin('google')}
               disabled={!!socialLoading}
             >
@@ -205,7 +182,7 @@ const Signup = () => {
             <Button 
               type="button"
               variant="outline"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 hover:bg-blue-100"
               onClick={() => handleSocialLogin('facebook')}
               disabled={!!socialLoading}
             >
@@ -215,7 +192,7 @@ const Signup = () => {
             <Button 
               type="button"
               variant="outline"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 hover:bg-blue-100"
               onClick={() => handleSocialLogin('yahoo')}
               disabled={!!socialLoading}
             >

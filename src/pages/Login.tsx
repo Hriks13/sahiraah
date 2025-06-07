@@ -5,11 +5,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/sonner";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook, FaYahoo } from "react-icons/fa";
+import { 
+  handleSecureOAuthLogin, 
+  handleSecureLogin, 
+  handleSecureSignup, 
+  handleOAuthCallback 
+} from "@/utils/authUtils";
 
 // Helper function to clean up auth state
 const cleanupAuthState = () => {
@@ -42,147 +47,68 @@ const Login = () => {
   const [socialLoading, setSocialLoading] = useState("");
   const navigate = useNavigate();
 
-  // Check if already logged in
+  // Check if already logged in or handle OAuth callback
   useEffect(() => {
-    const checkSession = async () => {
+    const init = async () => {
+      // Handle OAuth callback first
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('code')) {
+        const result = await handleOAuthCallback();
+        if (result.success) {
+          return; // Will redirect to dashboard
+        }
+      }
+
+      // Check existing session
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // Directly navigate to dashboard when session exists
         navigate("/dashboard", { replace: true });
       }
     };
     
-    checkSession();
+    init();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast.error("Please provide both email and password");
       return;
     }
     
-    try {
-      setIsLoading(true);
-      
-      // Clean up existing auth state
-      cleanupAuthState();
-      
-      // Try to sign out first to clear any existing sessions
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
-      // Now attempt to sign in
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data.user) {
-        // Store user data in localStorage for app-level access
-        localStorage.setItem("sahiraah_user", JSON.stringify(data.user));
-        
-        toast.success("Login successful! Welcome back!");
-        
-        // Force a full page refresh and redirect to dashboard
-        window.location.href = "/dashboard";
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Invalid email or password");
-    } finally {
-      setIsLoading(false);
-    }
+    setIsLoading(true);
+    await handleSecureLogin(email, password);
+    setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!signupEmail || !signupPassword) {
-      toast.error("Please provide both email and password");
       return;
     }
     
     if (signupPassword !== confirmPassword) {
-      toast.error("Password and confirmation do not match");
       return;
     }
     
-    try {
-      setIsLoading(true);
-      
-      // Clean up existing auth state
-      cleanupAuthState();
-      
-      // Try to sign out first to clear any existing sessions
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data.user) {
-        toast.success("Sign up successful! Please check your email to confirm your account.");
-        setSignupEmail("");
-        setSignupPassword("");
-        setConfirmPassword("");
-      }
-    } catch (error: any) {
-      console.error("Sign up error:", error);
-      toast.error(error.message || "Could not create account");
-    } finally {
-      setIsLoading(false);
+    setIsLoading(true);
+    const result = await handleSecureSignup(signupEmail, signupPassword);
+    if (result.success) {
+      setSignupEmail("");
+      setSignupPassword("");
+      setConfirmPassword("");
     }
+    setIsLoading(false);
   };
 
-  const handleSocialLogin = async (provider: ExtendedProvider) => {
-    try {
-      setSocialLoading(provider);
-      
-      // Clean up existing auth state
-      cleanupAuthState();
-      
-      // Try to sign out first to clear any existing sessions
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
-      // Use type assertion to handle yahoo provider
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        // @ts-ignore - Ignore typescript error for yahoo provider
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error(`${provider} login error:`, error);
-      toast.error(error.message || `Could not login with ${provider}`);
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'yahoo') => {
+    setSocialLoading(provider);
+    const result = await handleSecureOAuthLogin(provider);
+    if (!result.success) {
       setSocialLoading("");
     }
+    // If successful, the function will redirect
   };
 
   return (
@@ -251,7 +177,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 hover:bg-blue-50"
                     onClick={() => handleSocialLogin('google')}
                     disabled={!!socialLoading}
                   >
@@ -261,7 +187,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 hover:bg-blue-50"
                     onClick={() => handleSocialLogin('facebook')}
                     disabled={!!socialLoading}
                   >
@@ -271,7 +197,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 hover:bg-blue-50"
                     onClick={() => handleSocialLogin('yahoo')}
                     disabled={!!socialLoading}
                   >
@@ -338,7 +264,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 hover:bg-blue-50"
                     onClick={() => handleSocialLogin('google')}
                     disabled={!!socialLoading}
                   >
@@ -348,7 +274,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 hover:bg-blue-50"
                     onClick={() => handleSocialLogin('facebook')}
                     disabled={!!socialLoading}
                   >
@@ -358,7 +284,7 @@ const Login = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 hover:bg-blue-50"
                     onClick={() => handleSocialLogin('yahoo')}
                     disabled={!!socialLoading}
                   >

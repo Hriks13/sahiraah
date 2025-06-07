@@ -7,6 +7,7 @@ interface AdSenseAdProps {
   style?: React.CSSProperties;
   className?: string;
   educationalCategory?: 'courses' | 'career' | 'skills' | 'general';
+  sticky?: boolean;
 }
 
 const AdSenseAd: React.FC<AdSenseAdProps> = ({
@@ -15,6 +16,7 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
   style = { display: 'block', textAlign: 'center' },
   className,
   educationalCategory = 'general',
+  sticky = false,
 }) => {
   const adRef = useRef<HTMLDivElement>(null);
   
@@ -23,11 +25,14 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
       if (adRef.current && typeof window !== 'undefined') {
         // Check if AdSense script is loaded
         if (window.adsbygoogle) {
-          // Push the ad with educational targeting
+          // Push the ad with educational targeting and enhanced parameters
           (window.adsbygoogle = window.adsbygoogle || []).push({
-            // Add educational targeting parameters
-            google_ad_channel: `education,career,${educationalCategory}`,
-            google_ad_region: 'educational_content'
+            // Enhanced educational targeting parameters
+            google_ad_channel: `education,career,${educationalCategory},students`,
+            google_ad_region: 'educational_content',
+            google_safe: 'high', // Ensure family-safe content
+            google_content_recommendation: 'education',
+            google_hints: 'education,learning,courses,career,skills'
           });
           console.log(`Educational AdSense ad pushed for category: ${educationalCategory}`);
         } else {
@@ -41,16 +46,20 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
 
   const getCategoryKeywords = (category: string) => {
     const keywords = {
-      courses: 'online courses, education, learning, certification',
-      career: 'career development, job opportunities, professional growth',
-      skills: 'skill development, training, professional skills',
-      general: 'education, learning, career, development'
+      courses: 'online courses, education, learning, certification, training, exam prep',
+      career: 'career development, job opportunities, professional growth, career guidance',
+      skills: 'skill development, training, professional skills, competency building',
+      general: 'education, learning, career, development, student resources'
     };
     return keywords[category as keyof typeof keywords] || keywords.general;
   };
 
+  const containerClass = sticky 
+    ? `adsense-container sticky top-4 z-10 ${className || ''}` 
+    : `adsense-container ${className || ''}`;
+
   return (
-    <div className={`adsense-container ${className || ''}`} ref={adRef}>
+    <div className={containerClass} ref={adRef}>
       <ins
         className="adsbygoogle"
         style={style}
@@ -58,9 +67,12 @@ const AdSenseAd: React.FC<AdSenseAdProps> = ({
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"
-        data-ad-channel={`education,career,${educationalCategory}`}
-        data-page-url={window.location.href}
+        data-ad-channel={`education,career,${educationalCategory},students`}
+        data-page-url={typeof window !== 'undefined' ? window.location.href : ''}
         data-ad-keywords={getCategoryKeywords(educationalCategory)}
+        data-ad-test="off"
+        data-adbreak-test="on"
+        data-ad-frequency-hint="30s"
       />
     </div>
   );
