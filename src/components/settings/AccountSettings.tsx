@@ -6,7 +6,6 @@ import { Facebook } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { handleSecureOAuthLogin } from "@/utils/authUtils";
 
 interface AccountSettingsProps {
   profile: UserProfile;
@@ -15,7 +14,6 @@ interface AccountSettingsProps {
 export const AccountSettings = ({ profile }: AccountSettingsProps) => {
   const [providers, setProviders] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [connectingProvider, setConnectingProvider] = useState("");
   
   useEffect(() => {
     const fetchUserIdentities = async () => {
@@ -43,26 +41,55 @@ export const AccountSettings = ({ profile }: AccountSettingsProps) => {
     fetchUserIdentities();
   }, []);
   
-  const handleConnectProvider = async (provider: 'google' | 'facebook' | 'yahoo') => {
-    if (providers.includes(provider)) {
+  const handleConnectGoogle = async () => {
+    if (providers.includes('google')) {
       toast({
         title: "Already connected",
-        description: `Your account is already connected to ${provider}`,
+        description: "Your account is already connected to Google",
       });
       return;
     }
     
-    setConnectingProvider(provider);
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/settings',
+        }
+      });
+    } catch (error) {
+      console.error("Error connecting Google:", error);
+      toast({
+        title: "Connection failed",
+        description: "Could not connect to Google. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleConnectFacebook = async () => {
+    if (providers.includes('facebook')) {
+      toast({
+        title: "Already connected",
+        description: "Your account is already connected to Facebook",
+      });
+      return;
+    }
     
     try {
-      const result = await handleSecureOAuthLogin(provider);
-      if (!result.success) {
-        setConnectingProvider("");
-      }
-      // If successful, page will redirect
+      await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: window.location.origin + '/settings',
+        }
+      });
     } catch (error) {
-      console.error(`Error connecting ${provider}:`, error);
-      setConnectingProvider("");
+      console.error("Error connecting Facebook:", error);
+      toast({
+        title: "Connection failed",
+        description: "Could not connect to Facebook. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -106,14 +133,7 @@ export const AccountSettings = ({ profile }: AccountSettingsProps) => {
                 {providers.includes('google') ? (
                   <Button variant="outline" size="sm" className="bg-green-50 text-green-700 border-green-200">Connected</Button>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleConnectProvider('google')}
-                    disabled={!!connectingProvider}
-                  >
-                    {connectingProvider === 'google' ? 'Connecting...' : 'Connect'}
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleConnectGoogle}>Connect</Button>
                 )}
               </div>
               
@@ -128,36 +148,7 @@ export const AccountSettings = ({ profile }: AccountSettingsProps) => {
                 {providers.includes('facebook') ? (
                   <Button variant="outline" size="sm" className="bg-green-50 text-green-700 border-green-200">Connected</Button>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleConnectProvider('facebook')}
-                    disabled={!!connectingProvider}
-                  >
-                    {connectingProvider === 'facebook' ? 'Connecting...' : 'Connect'}
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">Y</div>
-                  <div>
-                    <p className="font-medium">Yahoo</p>
-                    <p className="text-xs text-gray-500">Sign in with Yahoo</p>
-                  </div>
-                </div>
-                {providers.includes('yahoo') ? (
-                  <Button variant="outline" size="sm" className="bg-green-50 text-green-700 border-green-200">Connected</Button>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleConnectProvider('yahoo')}
-                    disabled={!!connectingProvider}
-                  >
-                    {connectingProvider === 'yahoo' ? 'Connecting...' : 'Connect'}
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleConnectFacebook}>Connect</Button>
                 )}
               </div>
             </div>
