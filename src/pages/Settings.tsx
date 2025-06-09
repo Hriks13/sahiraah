@@ -123,35 +123,37 @@ const Settings = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h1 className="text-3xl font-bold text-blue-900 mb-4">Account Settings</h1>
-      
-      {profile && (
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="profile">
-            <ProfileForm profile={profile} onProfileUpdate={handleProfileUpdate} />
-          </TabsContent>
-          
-          <TabsContent value="account">
-            <AccountSettings profile={profile} />
-          </TabsContent>
-          
-          <TabsContent value="history">
-            <HistorySettings userId={profile.id} />
-          </TabsContent>
-          
-          <TabsContent value="preferences">
-            <PreferencesSettings userId={profile.id} />
-          </TabsContent>
-        </Tabs>
-      )}
+    <div className="min-h-screen bg-blue-50 py-6">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <h1 className="text-2xl md:text-3xl font-bold text-blue-900 mb-6">Account Settings</h1>
+        
+        {profile && (
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="mb-6 grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+              <TabsTrigger value="profile" className="text-xs md:text-sm">Profile</TabsTrigger>
+              <TabsTrigger value="account" className="text-xs md:text-sm">Account</TabsTrigger>
+              <TabsTrigger value="history" className="text-xs md:text-sm">History</TabsTrigger>
+              <TabsTrigger value="preferences" className="text-xs md:text-sm">Preferences</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="profile" className="space-y-6">
+              <ProfileForm profile={profile} onProfileUpdate={handleProfileUpdate} />
+            </TabsContent>
+            
+            <TabsContent value="account" className="space-y-6">
+              <AccountSettings profile={profile} />
+            </TabsContent>
+            
+            <TabsContent value="history" className="space-y-6">
+              <HistorySettings userId={profile.id} />
+            </TabsContent>
+            
+            <TabsContent value="preferences" className="space-y-6">
+              <PreferencesSettings userId={profile.id} />
+            </TabsContent>
+          </Tabs>
+        )}
+      </div>
     </div>
   );
 };
