@@ -39,6 +39,42 @@ export type Database = {
         }
         Relationships: []
       }
+      courses: {
+        Row: {
+          career_path: string
+          created_at: string
+          description: string
+          duration: string
+          id: string
+          level: string
+          order_index: number
+          skills: string[]
+          title: string
+        }
+        Insert: {
+          career_path: string
+          created_at?: string
+          description: string
+          duration: string
+          id?: string
+          level: string
+          order_index?: number
+          skills: string[]
+          title: string
+        }
+        Update: {
+          career_path?: string
+          created_at?: string
+          description?: string
+          duration?: string
+          id?: string
+          level?: string
+          order_index?: number
+          skills?: string[]
+          title?: string
+        }
+        Relationships: []
+      }
       user_career_history: {
         Row: {
           career: string
@@ -65,6 +101,82 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_course_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          started_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          started_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          started_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_learning_paths: {
+        Row: {
+          career_path: string
+          course_id: string
+          id: string
+          is_active: boolean
+          recommended_at: string
+          user_id: string
+        }
+        Insert: {
+          career_path: string
+          course_id: string
+          id?: string
+          is_active?: boolean
+          recommended_at?: string
+          user_id: string
+        }
+        Update: {
+          career_path?: string
+          course_id?: string
+          id?: string
+          is_active?: boolean
+          recommended_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_learning_paths_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {

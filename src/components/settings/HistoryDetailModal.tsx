@@ -24,6 +24,7 @@ interface Course {
   completed: boolean;
   description: string;
   skills: string[];
+  order_index: number;
 }
 
 interface HistoryDetailModalProps {
@@ -45,26 +46,30 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
 
   useEffect(() => {
     if (isOpen && item.career) {
-      fetchUserQuizData();
+      fetchCoursesAndProgress();
     }
   }, [isOpen, item.career]);
 
-  const fetchUserQuizData = async () => {
+  const fetchCoursesAndProgress = async () => {
     try {
       setLoading(true);
       const { data: session } = await supabase.auth.getSession();
       
-      if (!session.session?.user.id) return;
+      if (!session.session?.user.id) {
+        console.log("No user session found");
+        return;
+      }
 
-      // Fetch user's quiz responses to understand their background
-      const { data: quizData, error } = await supabase
+      const userId = session.session.user.id;
+
+      // Fetch user's quiz responses
+      const { data: quizData, error: quizError } = await supabase
         .from('user_quiz_responses')
         .select('question, answer')
-        .eq('user_id', session.session.user.id);
+        .eq('user_id', userId);
 
-      if (error) {
-        console.error("Error fetching quiz data:", error);
-        return;
+      if (quizError) {
+        console.error("Error fetching quiz data:", quizError);
       }
 
       // Convert quiz responses to a lookup object
@@ -74,12 +79,63 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
       });
       setUserAnswers(answers);
 
-      // Generate personalized courses based on career and user background
-      const personalizedCourses = generateCoursesForCareer(item.career, answers);
-      setCourses(personalizedCourses);
+      // Fetch courses for this career path
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('career_path', item.career)
+        .order('order_index', { ascending: true });
+
+      if (coursesError) {
+        console.error("Error fetching courses:", coursesError);
+        toast({
+          title: "Error loading courses",
+          description: "Could not load course data from database.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Fetch user's progress for these courses
+      const courseIds = coursesData?.map(course => course.id) || [];
+      let userProgress: any[] = [];
+      
+      if (courseIds.length > 0) {
+        const { data: progressData, error: progressError } = await supabase
+          .from('user_course_progress')
+          .select('course_id, completed, started_at, completed_at')
+          .eq('user_id', userId)
+          .in('course_id', courseIds);
+
+        if (progressError) {
+          console.error("Error fetching user progress:", progressError);
+        } else {
+          userProgress = progressData || [];
+        }
+      }
+
+      // Combine courses with user progress
+      const coursesWithProgress: Course[] = (coursesData || []).map(course => {
+        const progress = userProgress.find(p => p.course_id === course.id);
+        const educationLevel = answers["What is your current education level?"] || "Undergraduate";
+        const isAdvancedUser = educationLevel === "Graduate";
+        
+        return {
+          id: course.id,
+          title: course.title,
+          duration: course.duration,
+          level: course.level as 'Beginner' | 'Intermediate' | 'Advanced',
+          completed: progress?.completed || (course.level === 'Beginner' && isAdvancedUser),
+          description: course.description,
+          skills: course.skills || [],
+          order_index: course.order_index
+        };
+      });
+
+      setCourses(coursesWithProgress);
 
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error fetching course data:", error);
       toast({
         title: "Error loading course data",
         description: "Could not load personalized course recommendations.",
@@ -90,188 +146,57 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
     }
   };
 
-  const generateCoursesForCareer = (career: string, answers: Record<string, string>): Course[] => {
-    const educationLevel = answers["What is your current education level?"] || "Undergraduate";
-    const techInterest = answers["How excited are you about learning cutting-edge technologies?"] || "";
-    const projectInterest = answers["What kind of projects excite you the most?"] || "";
-    
-    // Determine starting level based on education and experience
-    const isAdvancedUser = educationLevel === "Graduate" || 
-                          techInterest.includes("Extremely excited") ||
-                          projectInterest.includes("Technology");
+  const handleStartCourse = async (course: Course) => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.user.id) return;
 
-    const careerCourses: Record<string, Course[]> = {
-      "Software Developer": [
-        {
-          id: "sd-1",
-          title: "Programming Fundamentals",
-          duration: "4 weeks",
-          level: "Beginner",
-          completed: isAdvancedUser,
-          description: "Learn the basics of programming logic, variables, and control structures.",
-          skills: ["Programming Logic", "Problem Solving", "Debugging"]
-        },
-        {
-          id: "sd-2",
-          title: "Web Development Basics",
-          duration: "6 weeks", 
-          level: "Beginner",
-          completed: false,
-          description: "Introduction to HTML, CSS, and JavaScript for web development.",
-          skills: ["HTML", "CSS", "JavaScript", "DOM Manipulation"]
-        },
-        {
-          id: "sd-3",
-          title: "Database Management",
-          duration: "5 weeks",
-          level: "Intermediate",
-          completed: false,
-          description: "Learn SQL, database design, and data modeling concepts.",
-          skills: ["SQL", "Database Design", "Data Modeling", "MySQL"]
-        },
-        {
-          id: "sd-4",
-          title: "React Development",
-          duration: "8 weeks",
-          level: "Intermediate",
-          completed: false,
-          description: "Build modern web applications using React framework.",
-          skills: ["React", "Component Architecture", "State Management", "Hooks"]
-        },
-        {
-          id: "sd-5",
-          title: "Software Architecture & Design Patterns",
-          duration: "6 weeks",
-          level: "Advanced",
-          completed: false,
-          description: "Master software architecture principles and common design patterns.",
-          skills: ["Software Architecture", "Design Patterns", "System Design", "Scalability"]
-        },
-        {
-          id: "sd-6",
-          title: "Cloud Computing & DevOps",
-          duration: "7 weeks",
-          level: "Advanced",
-          completed: false,
-          description: "Learn cloud platforms, containerization, and deployment strategies.",
-          skills: ["AWS", "Docker", "Kubernetes", "CI/CD", "DevOps"]
-        }
-      ],
-      "Data Scientist": [
-        {
-          id: "ds-1",
-          title: "Statistics Fundamentals",
-          duration: "5 weeks",
-          level: "Beginner",
-          completed: educationLevel === "Graduate",
-          description: "Essential statistical concepts for data analysis.",
-          skills: ["Statistics", "Probability", "Hypothesis Testing", "Data Analysis"]
-        },
-        {
-          id: "ds-2",
-          title: "Python for Data Science",
-          duration: "6 weeks",
-          level: "Beginner",
-          completed: false,
-          description: "Learn Python programming specifically for data science applications.",
-          skills: ["Python", "Pandas", "NumPy", "Data Manipulation"]
-        },
-        {
-          id: "ds-3",
-          title: "Data Visualization",
-          duration: "4 weeks",
-          level: "Intermediate",
-          completed: false,
-          description: "Create compelling visualizations using modern tools and techniques.",
-          skills: ["Matplotlib", "Seaborn", "Tableau", "Data Storytelling"]
-        },
-        {
-          id: "ds-4",
-          title: "Machine Learning Fundamentals",
-          duration: "8 weeks",
-          level: "Intermediate",
-          completed: false,
-          description: "Introduction to supervised and unsupervised learning algorithms.",
-          skills: ["Scikit-learn", "Regression", "Classification", "Clustering"]
-        },
-        {
-          id: "ds-5",
-          title: "Deep Learning & Neural Networks",
-          duration: "10 weeks",
-          level: "Advanced",
-          completed: false,
-          description: "Advanced machine learning with neural networks and deep learning.",
-          skills: ["TensorFlow", "PyTorch", "Neural Networks", "Deep Learning"]
-        },
-        {
-          id: "ds-6",
-          title: "Big Data Analytics",
-          duration: "8 weeks",
-          level: "Advanced",
-          completed: false,
-          description: "Handle and analyze large-scale datasets using modern tools.",
-          skills: ["Spark", "Hadoop", "Big Data", "Distributed Computing"]
-        }
-      ],
-      "UX Designer": [
-        {
-          id: "ux-1",
-          title: "Design Principles & Theory",
-          duration: "3 weeks",
-          level: "Beginner",
-          completed: projectInterest.includes("Creative"),
-          description: "Fundamental design principles, color theory, and typography.",
-          skills: ["Design Theory", "Color Theory", "Typography", "Visual Hierarchy"]
-        },
-        {
-          id: "ux-2",
-          title: "User Research Methods",
-          duration: "4 weeks",
-          level: "Beginner",
-          completed: false,
-          description: "Learn how to conduct user interviews, surveys, and usability testing.",
-          skills: ["User Research", "Interviews", "Surveys", "Usability Testing"]
-        },
-        {
-          id: "ux-3",
-          title: "Wireframing & Prototyping",
-          duration: "5 weeks",
-          level: "Intermediate",
-          completed: false,
-          description: "Create wireframes and interactive prototypes using design tools.",
-          skills: ["Wireframing", "Prototyping", "Figma", "Adobe XD"]
-        },
-        {
-          id: "ux-4",
-          title: "UI Design & Visual Design",
-          duration: "6 weeks",
-          level: "Intermediate",
-          completed: false,
-          description: "Master visual design principles and create stunning user interfaces.",
-          skills: ["UI Design", "Visual Design", "Design Systems", "Component Libraries"]
-        },
-        {
-          id: "ux-5",
-          title: "Advanced UX Strategy",
-          duration: "7 weeks",
-          level: "Advanced",
-          completed: false,
-          description: "Strategic UX planning, business alignment, and product strategy.",
-          skills: ["UX Strategy", "Product Strategy", "Business Analysis", "Stakeholder Management"]
-        },
-        {
-          id: "ux-6",
-          title: "Design Leadership & Portfolio",
-          duration: "4 weeks",
-          level: "Advanced",
-          completed: false,
-          description: "Build a professional portfolio and develop design leadership skills.",
-          skills: ["Portfolio Development", "Design Leadership", "Presentation Skills", "Career Development"]
-        }
-      ]
-    };
+      const userId = session.session.user.id;
 
-    return careerCourses[career as keyof typeof careerCourses] || [];
+      if (course.completed) {
+        toast({
+          title: "Course Already Completed",
+          description: `You have already completed ${course.title}!`,
+        });
+        return;
+      }
+
+      // Update or insert user progress
+      const { error } = await supabase
+        .from('user_course_progress')
+        .upsert({
+          user_id: userId,
+          course_id: course.id,
+          started_at: new Date().toISOString(),
+          completed: false
+        });
+
+      if (error) {
+        console.error("Error starting course:", error);
+        toast({
+          title: "Error",
+          description: "Could not start the course. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Course Started!",
+        description: `You've started ${course.title}. Good luck with your learning!`,
+      });
+
+      // Refresh the course data
+      fetchCoursesAndProgress();
+
+    } catch (error) {
+      console.error("Error starting course:", error);
+      toast({
+        title: "Error",
+        description: "Could not start the course. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getCareerDetails = (career: string) => {
@@ -409,47 +334,55 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
               <BookIcon className="h-5 w-5" />
               Your Personalized Learning Path
             </h3>
-            <div className="space-y-3">
-              {courses.map((course, index) => (
-                <Card key={course.id} className={`border-l-4 ${course.completed ? 'border-l-green-500 bg-green-50' : 'border-l-blue-500'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1">
-                        {course.completed ? (
-                          <CheckCircleIcon className="h-6 w-6 text-green-600 mt-1" />
-                        ) : (
-                          <PlayIcon className="h-6 w-6 text-blue-600 mt-1" />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-blue-900">{course.title}</h4>
-                            <Badge className={`text-xs ${getLevelColor(course.level)}`}>
-                              {course.level}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-blue-800 mb-2">{course.description}</p>
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {course.skills.map((skill, skillIndex) => (
-                              <Badge key={skillIndex} variant="outline" className="text-xs bg-white">
-                                {skill}
+            {courses.length > 0 ? (
+              <div className="space-y-3">
+                {courses.map((course, index) => (
+                  <Card key={course.id} className={`border-l-4 ${course.completed ? 'border-l-green-500 bg-green-50' : 'border-l-blue-500'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          {course.completed ? (
+                            <CheckCircleIcon className="h-6 w-6 text-green-600 mt-1" />
+                          ) : (
+                            <PlayIcon className="h-6 w-6 text-blue-600 mt-1" />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium text-blue-900">{course.title}</h4>
+                              <Badge className={`text-xs ${getLevelColor(course.level)}`}>
+                                {course.level}
                               </Badge>
-                            ))}
+                            </div>
+                            <p className="text-sm text-blue-800 mb-2">{course.description}</p>
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {course.skills.map((skill, skillIndex) => (
+                                <Badge key={skillIndex} variant="outline" className="text-xs bg-white">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-xs text-blue-600">Duration: {course.duration}</p>
                           </div>
-                          <p className="text-xs text-blue-600">Duration: {course.duration}</p>
                         </div>
+                        <Button 
+                          size="sm" 
+                          variant={course.completed ? "outline" : "default"}
+                          className={course.completed ? "text-green-700 border-green-300" : "bg-blue-600 hover:bg-blue-700"}
+                          onClick={() => handleStartCourse(course)}
+                        >
+                          {course.completed ? "Completed" : "Start Course"}
+                        </Button>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant={course.completed ? "outline" : "default"}
-                        className={course.completed ? "text-green-700 border-green-300" : "bg-blue-600 hover:bg-blue-700"}
-                      >
-                        {course.completed ? "Completed" : "Start Course"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <BookIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">No courses available for this career path.</p>
+              </div>
+            )}
           </div>
 
           <Separator />
@@ -506,10 +439,7 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
               onClick={() => {
                 const nextCourse = getNextCourse();
                 if (nextCourse) {
-                  toast({
-                    title: "Starting Next Course",
-                    description: `Beginning: ${nextCourse.title} (${nextCourse.level} level)`,
-                  });
+                  handleStartCourse(nextCourse);
                 } else {
                   toast({
                     title: "Congratulations!",
