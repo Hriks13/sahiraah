@@ -1,14 +1,15 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { BookOpenIcon, TrendingUpIcon, SparklesIcon, CheckCircleIcon, ExternalLinkIcon, RotateCcwIcon } from "lucide-react";
+import { BookOpenIcon, TrendingUpIcon, SparklesIcon, CheckCircleIcon, ExternalLinkIcon, RotateCcwIcon, FileTextIcon } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import CareerGuideDetail from "./CareerGuideDetail";
+import { generateCareerReport } from "@/utils/reportGenerator";
+import { CareerReport } from "./CareerReport";
 
 interface CareerRecommendationsProps {
   userAnswers: Record<string, string>;
@@ -27,13 +28,13 @@ interface CareerRecommendation {
   futureOutlook: string;
   roadmap: {
     beginner: { 
-      resources: { title: string; link: string; platform: string }[] 
+      resources: { title: string; link: string; platform: string; estimatedTime: string }[] 
     };
     intermediate: { 
-      resources: { title: string; link: string; platform: string }[] 
+      resources: { title: string; link: string; platform: string; estimatedTime: string }[] 
     };
     advanced: { 
-      resources: { title: string; link: string; platform: string }[] 
+      resources: { title: string; link: string; platform: string; estimatedTime: string }[] 
     };
   };
   timeline: { 
@@ -50,6 +51,8 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
   const [selectedCareer, setSelectedCareer] = useState<CareerRecommendation | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [savedCareers, setSavedCareers] = useState<Set<string>>(new Set());
+  const [showReport, setShowReport] = useState(false);
+  const [reportData, setReportData] = useState<any>(null);
 
   useEffect(() => {
     generateRecommendations();
@@ -128,23 +131,23 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
         roadmap: {
           beginner: {
             resources: [
-              { title: "HTML, CSS & JavaScript Fundamentals", link: "https://www.freecodecamp.org/learn/responsive-web-design/", platform: "FreeCodeCamp" },
-              { title: "Python Programming for Beginners", link: "https://www.youtube.com/watch?v=rfscVS0vtbw", platform: "YouTube" },
-              { title: "Git & GitHub Tutorial", link: "https://www.youtube.com/watch?v=RGOj5yH7evk", platform: "YouTube" }
+              { title: "HTML, CSS & JavaScript Fundamentals", link: "https://www.freecodecamp.org/learn/responsive-web-design/", platform: "FreeCodeCamp", estimatedTime: "4-6 weeks" },
+              { title: "Python Programming for Beginners", link: "https://www.youtube.com/watch?v=rfscVS0vtbw", platform: "YouTube", estimatedTime: "6-8 weeks" },
+              { title: "Git & GitHub Tutorial", link: "https://www.youtube.com/watch?v=RGOj5yH7evk", platform: "YouTube", estimatedTime: "2-3 weeks" }
             ]
           },
           intermediate: {
             resources: [
-              { title: "React.js Complete Course", link: "https://www.youtube.com/watch?v=bMknfKXIFA8", platform: "YouTube" },
-              { title: "Node.js & Express.js Tutorial", link: "https://www.youtube.com/watch?v=Oe421EPjeBE", platform: "YouTube" },
-              { title: "Database Design & SQL", link: "https://www.khanacademy.org/computing/computer-programming/sql", platform: "Khan Academy" }
+              { title: "React.js Complete Course", link: "https://www.youtube.com/watch?v=bMknfKXIFA8", platform: "YouTube", estimatedTime: "8-12 weeks" },
+              { title: "Node.js & Express.js Tutorial", link: "https://www.youtube.com/watch?v=Oe421EPjeBE", platform: "YouTube", estimatedTime: "6-10 weeks" },
+              { title: "Database Design & SQL", link: "https://www.khanacademy.org/computing/computer-programming/sql", platform: "Khan Academy", estimatedTime: "4-6 weeks" }
             ]
           },
           advanced: {
             resources: [
-              { title: "System Design Interview Prep", link: "https://www.youtube.com/watch?v=ZgdS0EUmn70", platform: "YouTube" },
-              { title: "Cloud Computing with AWS", link: "https://aws.amazon.com/training/awsacademy/", platform: "AWS Academy" },
-              { title: "Advanced React Patterns", link: "https://www.youtube.com/watch?v=cF2lQ_gZeA8", platform: "YouTube" }
+              { title: "System Design Interview Prep", link: "https://www.youtube.com/watch?v=ZgdS0EUmn70", platform: "YouTube", estimatedTime: "12-16 weeks" },
+              { title: "Cloud Computing with AWS", link: "https://aws.amazon.com/training/awsacademy/", platform: "AWS Academy", estimatedTime: "16-20 weeks" },
+              { title: "Advanced React Patterns", link: "https://www.youtube.com/watch?v=cF2lQ_gZeA8", platform: "YouTube", estimatedTime: "8-12 weeks" }
             ]
           }
         },
@@ -174,23 +177,23 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
         roadmap: {
           beginner: {
             resources: [
-              { title: "Design Thinking Fundamentals", link: "https://www.coursera.org/learn/uva-darden-design-thinking-fundamentals", platform: "Coursera" },
-              { title: "Figma Tutorial for Beginners", link: "https://www.youtube.com/watch?v=FTFaQWZBqQ8", platform: "YouTube" },
-              { title: "Introduction to UX Design", link: "https://www.coursera.org/learn/user-experience-design", platform: "Coursera" }
+              { title: "Design Thinking Fundamentals", link: "https://www.coursera.org/learn/uva-darden-design-thinking-fundamentals", platform: "Coursera", estimatedTime: "4-6 weeks" },
+              { title: "Figma Tutorial for Beginners", link: "https://www.youtube.com/watch?v=FTFaQWZBqQ8", platform: "YouTube", estimatedTime: "2-3 weeks" },
+              { title: "Introduction to UX Design", link: "https://www.coursera.org/learn/user-experience-design", platform: "Coursera", estimatedTime: "6-8 weeks" }
             ]
           },
           intermediate: {
             resources: [
-              { title: "Advanced Figma Techniques", link: "https://www.youtube.com/watch?v=RYDiDpW2VkM", platform: "YouTube" },
-              { title: "User Research Methods", link: "https://www.nngroup.com/articles/which-ux-research-methods/", platform: "Nielsen Norman Group" },
-              { title: "Prototyping with Principle", link: "https://www.youtube.com/watch?v=15muvKI2rJ8", platform: "YouTube" }
+              { title: "Advanced Figma Techniques", link: "https://www.youtube.com/watch?v=RYDiDpW2VkM", platform: "YouTube", estimatedTime: "8-12 weeks" },
+              { title: "User Research Methods", link: "https://www.nngroup.com/articles/which-ux-research-methods/", platform: "Nielsen Norman Group", estimatedTime: "6-10 weeks" },
+              { title: "Prototyping with Principle", link: "https://www.youtube.com/watch?v=15muvKI2rJ8", platform: "YouTube", estimatedTime: "4-6 weeks" }
             ]
           },
           advanced: {
             resources: [
-              { title: "Design Systems Masterclass", link: "https://www.youtube.com/watch?v=wc5krSHtFP4", platform: "YouTube" },
-              { title: "Advanced UX Strategy", link: "https://www.nngroup.com/courses/ux-strategy/", platform: "Nielsen Norman Group" },
-              { title: "Design Leadership & Management", link: "https://www.designbetter.co/design-leadership-handbook", platform: "InVision" }
+              { title: "Design Systems Masterclass", link: "https://www.youtube.com/watch?v=wc5krSHtFP4", platform: "YouTube", estimatedTime: "12-16 weeks" },
+              { title: "Advanced UX Strategy", link: "https://www.nngroup.com/courses/ux-strategy/", platform: "Nielsen Norman Group", estimatedTime: "16-20 weeks" },
+              { title: "Design Leadership & Management", link: "https://www.designbetter.co/design-leadership-handbook", platform: "InVision", estimatedTime: "8-12 weeks" }
             ]
           }
         },
@@ -220,23 +223,23 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
         roadmap: {
           beginner: {
             resources: [
-              { title: "Statistics for Data Science", link: "https://www.khanacademy.org/math/statistics-probability", platform: "Khan Academy" },
-              { title: "Python for Data Science", link: "https://www.youtube.com/watch?v=LHBE6Q9XlzI", platform: "YouTube" },
-              { title: "Introduction to SQL", link: "https://www.w3schools.com/sql/", platform: "W3Schools" }
+              { title: "Statistics for Data Science", link: "https://www.khanacademy.org/math/statistics-probability", platform: "Khan Academy", estimatedTime: "4-6 weeks" },
+              { title: "Python for Data Science", link: "https://www.youtube.com/watch?v=LHBE6Q9XlzI", platform: "YouTube", estimatedTime: "6-8 weeks" },
+              { title: "Introduction to SQL", link: "https://www.w3schools.com/sql/", platform: "W3Schools", estimatedTime: "2-3 weeks" }
             ]
           },
           intermediate: {
             resources: [
-              { title: "Machine Learning Course", link: "https://www.coursera.org/learn/machine-learning", platform: "Coursera" },
-              { title: "Data Visualization with Python", link: "https://www.youtube.com/watch?v=UO98lJQ3QGI", platform: "YouTube" },
-              { title: "Pandas & NumPy Tutorial", link: "https://www.youtube.com/watch?v=vmEHCJofslg", platform: "YouTube" }
+              { title: "Machine Learning Course", link: "https://www.coursera.org/learn/machine-learning", platform: "Coursera", estimatedTime: "8-12 weeks" },
+              { title: "Data Visualization with Python", link: "https://www.youtube.com/watch?v=UO98lJQ3QGI", platform: "YouTube", estimatedTime: "6-10 weeks" },
+              { title: "Pandas & NumPy Tutorial", link: "https://www.youtube.com/watch?v=vmEHCJofslg", platform: "YouTube", estimatedTime: "4-6 weeks" }
             ]
           },
           advanced: {
             resources: [
-              { title: "Deep Learning Specialization", link: "https://www.coursera.org/specializations/deep-learning", platform: "Coursera" },
-              { title: "Advanced SQL for Data Science", link: "https://www.youtube.com/watch?v=M-55BmjOuXY", platform: "YouTube" },
-              { title: "MLOps and Model Deployment", link: "https://www.youtube.com/watch?v=NMtlGyimjWw", platform: "YouTube" }
+              { title: "Deep Learning Specialization", link: "https://www.coursera.org/specializations/deep-learning", platform: "Coursera", estimatedTime: "12-16 weeks" },
+              { title: "Advanced SQL for Data Science", link: "https://www.youtube.com/watch?v=M-55BmjOuXY", platform: "YouTube", estimatedTime: "16-20 weeks" },
+              { title: "MLOps and Model Deployment", link: "https://www.youtube.com/watch?v=NMtlGyimjWw", platform: "YouTube", estimatedTime: "8-12 weeks" }
             ]
           }
         },
@@ -266,23 +269,23 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
         roadmap: {
           beginner: {
             resources: [
-              { title: "Product Management Fundamentals", link: "https://www.coursera.org/learn/product-management-fundamentals", platform: "Coursera" },
-              { title: "Introduction to Market Research", link: "https://www.youtube.com/watch?v=NQsKD7E3_UY", platform: "YouTube" },
-              { title: "Agile and Scrum Basics", link: "https://www.youtube.com/watch?v=9TycLR0TqFA", platform: "YouTube" }
+              { title: "Product Management Fundamentals", link: "https://www.coursera.org/learn/product-management-fundamentals", platform: "Coursera", estimatedTime: "4-6 weeks" },
+              { title: "Introduction to Market Research", link: "https://www.youtube.com/watch?v=NQsKD7E3_UY", platform: "YouTube", estimatedTime: "2-3 weeks" },
+              { title: "Agile and Scrum Basics", link: "https://www.youtube.com/watch?v=9TycLR0TqFA", platform: "YouTube", estimatedTime: "6-8 weeks" }
             ]
           },
           intermediate: {
             resources: [
-              { title: "Advanced Product Strategy", link: "https://www.youtube.com/watch?v=9KHLTZaJcR8", platform: "YouTube" },
-              { title: "User Story Writing Workshop", link: "https://www.youtube.com/watch?v=0HMsh459h5c", platform: "YouTube" },
-              { title: "Product Analytics Deep Dive", link: "https://www.youtube.com/watch?v=UXZozNWQLJM", platform: "YouTube" }
+              { title: "Advanced Product Strategy", link: "https://www.youtube.com/watch?v=9KHLTZaJcR8", platform: "YouTube", estimatedTime: "8-12 weeks" },
+              { title: "User Story Writing Workshop", link: "https://www.youtube.com/watch?v=0HMsh459h5c", platform: "YouTube", estimatedTime: "6-10 weeks" },
+              { title: "Product Analytics Deep Dive", link: "https://www.youtube.com/watch?v=UXZozNWQLJM", platform: "YouTube", estimatedTime: "4-6 weeks" }
             ]
           },
           advanced: {
             resources: [
-              { title: "Product Leadership Masterclass", link: "https://www.youtube.com/watch?v=hvdhBHBzXpM", platform: "YouTube" },
-              { title: "Strategic Product Planning", link: "https://www.youtube.com/watch?v=jK-ZgqDlZt4", platform: "YouTube" },
-              { title: "Growth Product Management", link: "https://www.youtube.com/watch?v=Q5JE2cgMbCk", platform: "YouTube" }
+              { title: "Product Leadership Masterclass", link: "https://www.youtube.com/watch?v=hvdhBHBzXpM", platform: "YouTube", estimatedTime: "12-16 weeks" },
+              { title: "Strategic Product Planning", link: "https://www.youtube.com/watch?v=jK-ZgqDlZt4", platform: "YouTube", estimatedTime: "16-20 weeks" },
+              { title: "Growth Product Management", link: "https://www.youtube.com/watch?v=Q5JE2cgMbCk", platform: "YouTube", estimatedTime: "8-12 weeks" }
             ]
           }
         },
@@ -310,23 +313,23 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
         roadmap: {
           beginner: {
             resources: [
-              { title: "Digital Marketing Fundamentals", link: "https://www.coursera.org/learn/digital-marketing", platform: "Coursera" },
-              { title: "Google Analytics Beginner Course", link: "https://analytics.google.com/analytics/academy/", platform: "Google Analytics Academy" },
-              { title: "Content Marketing Basics", link: "https://www.youtube.com/watch?v=BWE3pH7mZrM", platform: "YouTube" }
+              { title: "Digital Marketing Fundamentals", link: "https://www.coursera.org/learn/digital-marketing", platform: "Coursera", estimatedTime: "4-6 weeks" },
+              { title: "Google Analytics Beginner Course", link: "https://analytics.google.com/analytics/academy/", platform: "Google Analytics Academy", estimatedTime: "2-3 weeks" },
+              { title: "Content Marketing Basics", link: "https://www.youtube.com/watch?v=BWE3pH7mZrM", platform: "YouTube", estimatedTime: "6-8 weeks" }
             ]
           },
           intermediate: {
             resources: [
-              { title: "Advanced SEO Techniques", link: "https://www.youtube.com/watch?v=OU-9Z_mLm3k", platform: "YouTube" },
-              { title: "Facebook Ads Mastery", link: "https://www.facebook.com/business/learn", platform: "Facebook Blueprint" },
-              { title: "Email Marketing Strategy", link: "https://www.youtube.com/watch?v=7nRQJjBCWl8", platform: "YouTube" }
+              { title: "Advanced SEO Techniques", link: "https://www.youtube.com/watch?v=OU-9Z_mLm3k", platform: "YouTube", estimatedTime: "8-12 weeks" },
+              { title: "Facebook Ads Mastery", link: "https://www.facebook.com/business/learn", platform: "Facebook Blueprint", estimatedTime: "6-10 weeks" },
+              { title: "Email Marketing Strategy", link: "https://www.youtube.com/watch?v=7nRQJjBCWl8", platform: "YouTube", estimatedTime: "4-6 weeks" }
             ]
           },
           advanced: {
             resources: [
-              { title: "Marketing Automation", link: "https://www.youtube.com/watch?v=DM4s3lkW8mI", platform: "YouTube" },
-              { title: "Growth Hacking Strategies", link: "https://www.youtube.com/watch?v=J8YPwDW9Ixo", platform: "YouTube" },
-              { title: "Advanced Analytics & Attribution", link: "https://www.youtube.com/watch?v=xjOpNurPpNk", platform: "YouTube" }
+              { title: "Marketing Automation", link: "https://www.youtube.com/watch?v=DM4s3lkW8mI", platform: "YouTube", estimatedTime: "12-16 weeks" },
+              { title: "Growth Hacking Strategies", link: "https://www.youtube.com/watch?v=J8YPwDW9Ixo", platform: "YouTube", estimatedTime: "16-20 weeks" },
+              { title: "Advanced Analytics & Attribution", link: "https://www.youtube.com/watch?v=xjOpNurPpNk", platform: "YouTube", estimatedTime: "8-12 weeks" }
             ]
           }
         },
@@ -385,6 +388,32 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
     }
   };
 
+  const handleViewReport = (career: CareerRecommendation) => {
+    const userName = userAnswers["What's your name?"] || "Student";
+    const report = generateCareerReport(userAnswers, career, userName);
+    setReportData(report);
+    setShowReport(true);
+  };
+
+  const handleDownloadPDF = async () => {
+    // Track PDF download in career history
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && reportData) {
+        await supabase
+          .from('user_career_history')
+          .update({ 
+            links_clicked: true,
+            roadmap_summary: `Complete career report downloaded with visual analytics and roadmap for ${reportData.career}` 
+          })
+          .eq('user_id', session.user.id)
+          .eq('career', reportData.career);
+      }
+    } catch (error) {
+      console.error("Error updating download status:", error);
+    }
+  };
+
   if (loading) {
     return (
       <Card className="bg-white shadow-lg border border-blue-100">
@@ -397,6 +426,16 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  if (showReport && reportData) {
+    return (
+      <CareerReport
+        reportData={reportData}
+        onClose={() => setShowReport(false)}
+        onDownloadPDF={handleDownloadPDF}
+      />
     );
   }
 
@@ -439,6 +478,15 @@ const CareerRecommendations = ({ userAnswers, onRetake }: CareerRecommendationsP
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewReport(career)}
+                      className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white"
+                    >
+                      <FileTextIcon className="h-4 w-4 mr-1" />
+                      View Report
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

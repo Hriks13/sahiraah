@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,7 +45,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     checkAuth();
   }, [navigate, toast]);
 
-  // Enhanced base questions with better categorization
+  // Enhanced base questions with better categorization - UPDATED for student segment
   const baseQuestions = [
     {
       question: "What's your name?",
@@ -58,7 +57,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     {
       question: "What is your current education level?",
       type: "radio",
-      options: ["10th Standard", "PU/11th-12th", "Diploma", "Undergraduate", "Graduate"],
+      options: ["10th Standard", "PU/11th-12th", "Diploma"],
       icon: <GraduationCapIcon className="h-5 w-5 text-blue-700" />,
       category: "personal",
     },

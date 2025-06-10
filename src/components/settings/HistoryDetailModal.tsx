@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpenIcon, ExternalLinkIcon, ClockIcon, TagIcon, TrendingUpIcon } from "lucide-react";
+import { BookOpenIcon, ExternalLinkIcon, ClockIcon, TagIcon, TrendingUpIcon, FileTextIcon } from "lucide-react";
+import { generateCareerReport } from "@/utils/reportGenerator";
+import { CareerReport } from "../CareerReport";
 
 interface HistoryDetailModalProps {
   isOpen: boolean;
@@ -28,9 +29,63 @@ interface HistoryDetailModalProps {
 }
 
 export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModalProps) => {
+  const [showReport, setShowReport] = useState(false);
+  const [reportData, setReportData] = useState<any>(null);
+
   const handleLinkClick = (url: string, title: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
     console.log(`Clicked on: ${title} - ${url}`);
+  };
+
+  const handleViewReport = async () => {
+    try {
+      // Fetch user quiz responses to generate report
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data: responses } = await supabase
+        .from('user_quiz_responses')
+        .select('question, answer')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (responses) {
+        const userAnswers = responses.reduce((acc, response) => {
+          acc[response.question] = response.answer;
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Create mock career recommendation for report generation
+        const mockCareer = {
+          title: item.career,
+          description: `Complete career path for ${item.career} with comprehensive roadmap and resources`,
+          matchPercentage: 85,
+          roadmap: item.courses ? {
+            beginner: { resources: item.courses.beginner || [] },
+            intermediate: { resources: item.courses.intermediate || [] },
+            advanced: { resources: item.courses.advanced || [] }
+          } : {
+            beginner: { resources: [] },
+            intermediate: { resources: [] },
+            advanced: { resources: [] }
+          },
+          salaryRange: "Competitive salary based on experience and skills",
+          futureOutlook: "Growing field with excellent career prospects"
+        };
+
+        const report = generateCareerReport(
+          userAnswers, 
+          mockCareer, 
+          userAnswers["What's your name?"] || "Student"
+        );
+        
+        setReportData(report);
+        setShowReport(true);
+      }
+    } catch (error) {
+      console.error("Error generating report:", error);
+    }
   };
 
   const renderCourseLevel = (levelName: string, courses: any[]) => {
@@ -87,6 +142,16 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
     );
   };
 
+  if (showReport && reportData) {
+    return (
+      <CareerReport
+        reportData={reportData}
+        onClose={() => setShowReport(false)}
+        onDownloadPDF={() => {}}
+      />
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -119,6 +184,17 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
                   </Badge>
                 </div>
               </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleViewReport}
+                className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white"
+              >
+                <FileTextIcon className="h-4 w-4 mr-1" />
+                View Report
+              </Button>
             </div>
           </div>
           
