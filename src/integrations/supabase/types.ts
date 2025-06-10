@@ -78,25 +78,37 @@ export type Database = {
       user_career_history: {
         Row: {
           career: string
+          courses: Json | null
           id: string
           is_selected: boolean | null
+          links_clicked: boolean | null
           reason: string | null
+          roadmap_summary: string | null
+          tags: string[] | null
           timestamp: string
           user_id: string
         }
         Insert: {
           career: string
+          courses?: Json | null
           id?: string
           is_selected?: boolean | null
+          links_clicked?: boolean | null
           reason?: string | null
+          roadmap_summary?: string | null
+          tags?: string[] | null
           timestamp?: string
           user_id: string
         }
         Update: {
           career?: string
+          courses?: Json | null
           id?: string
           is_selected?: boolean | null
+          links_clicked?: boolean | null
           reason?: string | null
+          roadmap_summary?: string | null
+          tags?: string[] | null
           timestamp?: string
           user_id?: string
         }

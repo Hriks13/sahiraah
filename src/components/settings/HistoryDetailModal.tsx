@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookIcon, BrainIcon, ClockIcon, MapPinIcon, PlayIcon, CheckCircleIcon, StarIcon } from "lucide-react";
+import { BookIcon, BrainIcon, ClockIcon, MapPinIcon, PlayIcon, CheckCircleIcon, StarIcon, ExternalLinkIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -27,6 +27,18 @@ interface Course {
   order_index: number;
 }
 
+interface CourseLink {
+  title: string;
+  link: string;
+  platform: string;
+}
+
+interface CoursesData {
+  beginner?: CourseLink[];
+  intermediate?: CourseLink[];
+  advanced?: CourseLink[];
+}
+
 interface HistoryDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -36,6 +48,10 @@ interface HistoryDetailModalProps {
     timestamp: string;
     isSelected?: boolean;
     type?: 'career' | 'course';
+    roadmap_summary?: string;
+    courses?: CoursesData;
+    tags?: string[];
+    links_clicked?: boolean;
   };
 }
 
@@ -199,6 +215,28 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
     }
   };
 
+  const handleExternalLinkClick = async (link: string) => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.user.id) return;
+
+      // Update links_clicked status in the career history
+      await supabase
+        .from('user_career_history')
+        .update({ links_clicked: true })
+        .eq('user_id', session.session.user.id)
+        .eq('career', item.career)
+        .eq('timestamp', item.timestamp);
+
+      // Open link in new tab
+      window.open(link, '_blank');
+    } catch (error) {
+      console.error("Error tracking link click:", error);
+      // Still open the link even if tracking fails
+      window.open(link, '_blank');
+    }
+  };
+
   const getCareerDetails = (career: string) => {
     const careerDetails = {
       "Software Developer": {
@@ -251,6 +289,109 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
     return courses.find(course => !course.completed);
   };
 
+  const renderExternalCourses = () => {
+    if (!item.courses) return null;
+
+    const { beginner = [], intermediate = [], advanced = [] } = item.courses;
+    const allCourses = [...beginner, ...intermediate, ...advanced];
+
+    if (allCourses.length === 0) return null;
+
+    return (
+      <div>
+        <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+          <ExternalLinkIcon className="h-5 w-5" />
+          Recommended External Courses
+        </h3>
+        <div className="space-y-4">
+          {beginner.length > 0 && (
+            <div>
+              <h4 className="font-medium text-green-700 mb-2">Beginner Level</h4>
+              <div className="space-y-2">
+                {beginner.map((course, index) => (
+                  <Card key={index} className="border-l-4 border-l-green-500 bg-green-50">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-medium text-blue-900">{course.title}</h5>
+                          <p className="text-sm text-blue-600">Platform: {course.platform}</p>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleExternalLinkClick(course.link)}
+                          className="text-blue-700 border-blue-300"
+                        >
+                          View Course
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {intermediate.length > 0 && (
+            <div>
+              <h4 className="font-medium text-yellow-700 mb-2">Intermediate Level</h4>
+              <div className="space-y-2">
+                {intermediate.map((course, index) => (
+                  <Card key={index} className="border-l-4 border-l-yellow-500 bg-yellow-50">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-medium text-blue-900">{course.title}</h5>
+                          <p className="text-sm text-blue-600">Platform: {course.platform}</p>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleExternalLinkClick(course.link)}
+                          className="text-blue-700 border-blue-300"
+                        >
+                          View Course
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {advanced.length > 0 && (
+            <div>
+              <h4 className="font-medium text-red-700 mb-2">Advanced Level</h4>
+              <div className="space-y-2">
+                {advanced.map((course, index) => (
+                  <Card key={index} className="border-l-4 border-l-red-500 bg-red-50">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-medium text-blue-900">{course.title}</h5>
+                          <p className="text-sm text-blue-600">Platform: {course.platform}</p>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleExternalLinkClick(course.link)}
+                          className="text-blue-700 border-blue-300"
+                        >
+                          View Course
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -277,6 +418,9 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
               {item.isSelected && (
                 <Badge className="bg-green-100 text-green-800">Current Selection</Badge>
               )}
+              {item.links_clicked && (
+                <Badge className="bg-blue-100 text-blue-800">Links Explored</Badge>
+              )}
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                 Career Path
               </Badge>
@@ -289,6 +433,33 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Tags */}
+          {item.tags && item.tags.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Career Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {item.tags.map((tag, index) => (
+                  <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Roadmap Summary */}
+          {item.roadmap_summary && (
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Learning Roadmap Summary</h3>
+              <div className="bg-gradient-to-r from-blue-50 to-yellow-50 p-4 rounded-md">
+                <p className="text-blue-700">{item.roadmap_summary}</p>
+              </div>
+            </div>
+          )}
+
+          {/* External Courses */}
+          {renderExternalCourses()}
+
           {/* Learning Progress */}
           <Card className="bg-gradient-to-r from-blue-50 to-yellow-50">
             <CardHeader>
