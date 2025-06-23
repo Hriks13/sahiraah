@@ -50,7 +50,7 @@ interface Props {
 
 const CareerRecommendationsAI = ({ sessionId, onRetake }: Props) => {
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
-  const [loading, setLo  ading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [studentName, setStudentName] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
