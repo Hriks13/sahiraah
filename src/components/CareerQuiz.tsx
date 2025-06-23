@@ -1,10 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { BookIcon, CodeIcon, UserIcon, BrainCogIcon, LightbulbIcon, GraduationCapIcon, RocketIcon, SparklesIcon, TrendingUpIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,11 +13,11 @@ import { useNavigate } from "react-router-dom";
 
 interface QuizProps {
   userId: string;
-  onComplete: (answers: Record<string, string>) => void;
+  onComplete: (sessionId: string) => void;
 }
 
 const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
-  const [currentQuestion, setCurrentQuestion] = useState(-1); // Start at -1 for intro screen
+  const [currentQuestion, setCurrentQuestion] = useState(-1);
   const [userName, setUserName] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
   const [questionCount, setQuestionCount] = useState(12);
@@ -26,7 +26,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizStarted, setQuizStarted] = useState(false);
   const [introStep, setIntroStep] = useState(0);
-  const [skillInterests, setSkillInterests] = useState<string[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
 
   // Verify authentication
   useEffect(() => {
@@ -45,7 +46,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     checkAuth();
   }, [navigate, toast]);
 
-  // Enhanced base questions with better categorization - UPDATED for student segment
+  // Enhanced base questions for student segment
   const baseQuestions = [
     {
       question: "What's your name?",
@@ -57,7 +58,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     {
       question: "What is your current education level?",
       type: "radio",
-      options: ["10th Standard", "PU/11th-12th", "Diploma"],
+      options: ["10th Standard", "PU/11th-12th", "Diploma", "Graduate", "Post Graduate"],
       icon: <GraduationCapIcon className="h-5 w-5 text-blue-700" />,
       category: "personal",
     },
@@ -216,25 +217,6 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       });
     }
 
-    // Analytical thinking branch
-    if (answers["What type of activities energize you the most?"]?.includes("Analyzing data") ||
-        answers["How do you approach solving complex problems?"]?.includes("patterns")) {
-      adaptiveQuestions.push({
-        question: "What type of data analysis interests you most?",
-        type: "radio",
-        options: [
-          "Business intelligence and market analysis",
-          "Scientific research and experimentation",
-          "Financial modeling and risk analysis",
-          "Social media and behavioral analytics",
-          "Healthcare and medical data analysis",
-          "Environmental and sustainability metrics"
-        ],
-        icon: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
-        category: "analytical-focus",
-      });
-    }
-
     return adaptiveQuestions;
   };
 
@@ -245,6 +227,31 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
 
   const questions = getAllQuestions();
 
+  const createQuizSession = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_quiz_sessions')
+        .insert({
+          user_id: userId,
+          total_questions: questionCount,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setSessionId(data.id);
+      return data.id;
+    } catch (error) {
+      console.error('Error creating quiz session:', error);
+      toast({
+        title: "Error",
+        description: "Could not start quiz session. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const handleInputChange = (value: string) => {
     if (currentQuestion === 0) {
       setUserName(value);
@@ -253,7 +260,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     const questionText = questions[currentQuestion].question;
     setAnswers({ ...answers, [questionText]: value });
     
-    // Dynamic question count adjustment based on engagement
+    // Dynamic question count adjustment
     if (currentQuestion === 5) {
       if (value.length > 50) {
         setQuestionCount(Math.min(questionCount + 2, questions.length));
@@ -273,45 +280,37 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       return;
     }
 
-    // Store the answer in Supabase
     try {
+      // Create session on first question if not already created
+      let currentSessionId = sessionId;
+      if (!currentSessionId) {
+        currentSessionId = await createQuizSession();
+      }
+
+      // Store individual answer
       const { error } = await supabase
-        .from('user_quiz_responses')
+        .from('user_quiz_answers')
         .insert({
+          session_id: currentSessionId,
           user_id: userId,
-          question: questionText,
-          answer: answers[questionText]
+          question_number: currentQuestion + 1,
+          question_category: questions[currentQuestion].category,
+          question_text: questionText,
+          answer_text: answers[questionText]
         });
       
-      if (error) {
-        console.error("Error storing quiz response:", error);
-        toast({
-          title: "Something went wrong",
-          description: "Could not save your answer. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
 
       // Record education level
       if (currentQuestion === 1) {
         setEducationLevel(answers[questionText]);
       }
 
-      // Dynamic question count adjustment based on engagement patterns
-      if (currentQuestion === 7) {
-        const uniqueResponses = new Set(Object.values(answers)).size;
-        if (uniqueResponses >= 6) {
-          setQuestionCount(Math.min(questionCount + 3, questions.length)); 
-        } else {
-          setQuestionCount(Math.max(questionCount - 1, 8));
-        }
-      }
-
       if (currentQuestion < Math.min(questionCount, questions.length) - 1) {
         setCurrentQuestion(currentQuestion + 1);
       } else {
-        onComplete(answers);
+        // Quiz completed - trigger AI analysis
+        await completeQuiz(currentSessionId);
       }
     } catch (error) {
       console.error("Error storing answer:", error);
@@ -323,7 +322,49 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     }
   };
 
-  const startQuiz = () => {
+  const completeQuiz = async (sessionId: string) => {
+    setProcessing(true);
+    
+    try {
+      const response = await fetch('/functions/v1/analyze-career-guidance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          sessionId,
+          userId,
+          answers,
+          studentName: userName,
+          educationLevel
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: "Analysis Complete!",
+          description: "Your personalized career recommendations are ready."
+        });
+        onComplete(sessionId);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error completing quiz:', error);
+      toast({
+        title: "Analysis Error",
+        description: "There was an issue analyzing your responses. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const startQuiz = async () => {
     setQuizStarted(true);
     setCurrentQuestion(0);
   };
@@ -415,13 +456,30 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     );
   }
 
+  if (processing) {
+    return (
+      <Card className="bg-white shadow-lg border border-blue-100">
+        <CardContent className="pt-6">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-blue-900 mb-2">Analyzing Your Responses</h3>
+            <p className="text-blue-700">Our AI is creating your personalized career recommendations...</p>
+            <div className="mt-6">
+              <Progress value={100} className="h-2 bg-blue-50" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const question = questions[currentQuestion];
   const progress = ((currentQuestion + 1) / questionCount) * 100;
   
   return (
     <Card className="bg-white shadow-lg border border-blue-100">
       <CardContent className="pt-6">
-        {/* Enhanced progress indicator */}
+        {/* Progress indicator */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-blue-700">
@@ -459,7 +517,6 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
                 {question.category === "tech-specialization" && "Tech Focus"}
                 {question.category === "creative-specialization" && "Creative Focus"}
                 {question.category === "leadership-style" && "Leadership Style"}
-                {question.category === "analytical-focus" && "Analytics Focus"}
               </h3>
             </div>
           </div>
@@ -472,15 +529,6 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder={question.placeholder}
               className="w-full text-lg p-4 border-2 border-blue-200 focus:border-blue-500 rounded-lg"
-            />
-          )}
-
-          {question.type === "textarea" && (
-            <Textarea
-              value={answers[question.question] || ""}
-              onChange={(e) => handleInputChange(e.target.value)}
-              placeholder={question.placeholder}
-              className="w-full text-lg p-4 border-2 border-blue-200 focus:border-blue-500 rounded-lg min-h-[120px]"
             />
           )}
 
@@ -504,6 +552,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
           <Button 
             onClick={handleNext} 
             size="lg"
+            disabled={processing}
             className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-blue-900 font-semibold px-8 py-3"
           >
             {currentQuestion < Math.min(questionCount, questions.length) - 1 ? (
