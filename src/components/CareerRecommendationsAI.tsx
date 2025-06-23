@@ -72,10 +72,23 @@ const CareerRecommendationsAI = ({ sessionId, onRetake }: Props) => {
         setStudentName(sessionData.student_name || "");
         setEducationLevel(sessionData.education_level || "");
         
+        // Safely parse and convert JSON data to proper types
+        const strengths = Array.isArray(sessionData.strengths) 
+          ? sessionData.strengths as string[]
+          : [];
+        
+        const weaknesses = Array.isArray(sessionData.weaknesses) 
+          ? sessionData.weaknesses as string[]
+          : [];
+        
+        const careerRecommendations = Array.isArray(sessionData.career_recommendations)
+          ? sessionData.career_recommendations as CareerRecommendation[]
+          : [];
+        
         const analysis: AnalysisData = {
-          strengths: sessionData.strengths || [],
-          areasForImprovement: sessionData.weaknesses || [],
-          careerRecommendations: sessionData.career_recommendations || [],
+          strengths,
+          areasForImprovement: weaknesses,
+          careerRecommendations,
           skillRoadmap: {
             immediate: ["Problem-solving", "Communication"],
             shortTerm: ["Technical skills", "Leadership"],
