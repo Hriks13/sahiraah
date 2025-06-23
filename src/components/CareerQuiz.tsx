@@ -11,6 +11,15 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+interface QuizQuestion {
+  question: string;
+  type: "text" | "radio";
+  options?: string[];
+  placeholder?: string;
+  icon: React.ReactNode;
+  category: string;
+}
+
 interface QuizProps {
   userId: string;
   onComplete: (sessionId: string) => void;
@@ -20,7 +29,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(-1);
   const [userName, setUserName] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
-  const [questionCount, setQuestionCount] = useState(12);
+  const [questionCount, setQuestionCount] = useState(25);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -28,6 +37,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [introStep, setIntroStep] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
 
   // Verify authentication
   useEffect(() => {
@@ -46,8 +57,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     checkAuth();
   }, [navigate, toast]);
 
-  // Enhanced base questions for student segment
-  const baseQuestions = [
+  // Base foundation questions
+  const baseQuestions: QuizQuestion[] = [
     {
       question: "What's your name?",
       type: "text",
@@ -94,138 +105,138 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       ],
       icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
       category: "analytical",
-    },
-    {
-      question: "What activities or hobbies do you enjoy in your free time?",
-      type: "text",
-      placeholder: "E.g., Coding, Reading, Sports, Art, Music...",
-      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
-      category: "interests",
-    },
-    {
-      question: "In which environment do you learn and work best?",
-      type: "radio",
-      options: [
-        "Quiet, focused individual work",
-        "Collaborative team environment", 
-        "Dynamic, fast-paced setting",
-        "Structured, organized environment",
-        "Flexible, creative workspace"
-      ],
-      icon: <BookIcon className="h-5 w-5 text-blue-700" />,
-      category: "learning",
-    },
-    {
-      question: "What kind of projects excite you the most?",
-      type: "radio",
-      options: [
-        "Technology and coding projects",
-        "Creative and design projects",
-        "Research and analysis projects", 
-        "Social impact and community projects",
-        "Business and entrepreneurial projects"
-      ],
-      icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-      category: "interests",
-    },
-    {
-      question: "When working in a team, what role do you naturally take?",
-      type: "radio",
-      options: [
-        "The strategic leader who guides direction",
-        "The creative innovator with new ideas", 
-        "The detail-oriented organizer",
-        "The supportive collaborator",
-        "The technical problem-solver"
-      ],
-      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
-      category: "skills",
-    },
-    {
-      question: "How excited are you about learning cutting-edge technologies?",
-      type: "radio",
-      options: [
-        "Extremely excited - I love being on the cutting edge",
-        "Very interested - I adapt quickly to new tech",
-        "Moderately interested - I'll learn what's needed",
-        "Somewhat hesitant - I prefer proven technologies",
-        "Not very interested - I focus on other skills"
-      ],
-      icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-      category: "mindset",
     }
   ];
 
-  // Enhanced adaptive questions based on responses
-  const getAdaptiveQuestions = () => {
-    const adaptiveQuestions = [];
-    
-    // Technology interest branch
-    if (answers["How excited are you about learning cutting-edge technologies?"]?.includes("Extremely excited") ||
-        answers["How excited are you about learning cutting-edge technologies?"]?.includes("Very interested")) {
-      adaptiveQuestions.push({
-        question: "Which emerging technology area interests you most?",
-        type: "radio",
-        options: [
-          "Artificial Intelligence & Machine Learning",
-          "Blockchain & Web3 Technologies",
-          "Internet of Things (IoT) & Smart Devices",
-          "Cybersecurity & Ethical Hacking",
-          "Augmented/Virtual Reality",
-          "Quantum Computing"
-        ],
-        icon: <RocketIcon className="h-5 w-5 text-blue-700" />,
-        category: "tech-specialization",
+  // Generate AI-powered questions based on user responses
+  const generateAdaptiveQuestions = async (userAnswers: Record<string, string>) => {
+    setLoadingQuestions(true);
+    try {
+      const response = await fetch('/functions/v1/generate-adaptive-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          answers: userAnswers,
+          educationLevel,
+          userName
+        })
       });
-    }
 
-    // Creative interest branch
-    if (answers["What kind of projects excite you the most?"]?.includes("Creative") ||
-        answers["What type of activities energize you the most?"]?.includes("Creating")) {
-      adaptiveQuestions.push({
-        question: "What type of creative work appeals to you most?",
-        type: "radio",
-        options: [
-          "Digital design and user experiences",
-          "Content creation and storytelling",
-          "Visual arts and graphic design",
-          "Music and audio production",
-          "Video and multimedia production",
-          "Game design and interactive media"
-        ],
-        icon: <SparklesIcon className="h-5 w-5 text-blue-700" />,
-        category: "creative-specialization",
+      if (!response.ok) throw new Error('Failed to generate questions');
+      
+      const result = await response.json();
+      return result.questions || [];
+    } catch (error) {
+      console.error('Error generating adaptive questions:', error);
+      toast({
+        title: "Using default questions",
+        description: "Unable to generate personalized questions. Using standard assessment.",
       });
+      return getDefaultAdaptiveQuestions();
+    } finally {
+      setLoadingQuestions(false);
     }
+  };
 
-    // Leadership interest branch
-    if (answers["When working in a team, what role do you naturally take?"]?.includes("strategic leader") ||
-        answers["What type of activities energize you the most?"]?.includes("Leading")) {
-      adaptiveQuestions.push({
-        question: "What type of leadership role interests you most?",
+  // Fallback adaptive questions
+  const getDefaultAdaptiveQuestions = (): QuizQuestion[] => {
+    const defaultQuestions: QuizQuestion[] = [
+      {
+        question: "What activities or hobbies do you enjoy in your free time?",
+        type: "text",
+        placeholder: "E.g., Coding, Reading, Sports, Art, Music...",
+        icon: <UserIcon className="h-5 w-5 text-blue-700" />,
+        category: "interests",
+      },
+      {
+        question: "In which environment do you learn and work best?",
         type: "radio",
         options: [
-          "Tech startup founder or entrepreneur",
-          "Project manager coordinating teams",
-          "Product manager driving innovation",
-          "Team lead in engineering/development",
-          "Business strategist and consultant",
-          "Social impact leader"
+          "Quiet, focused individual work",
+          "Collaborative team environment", 
+          "Dynamic, fast-paced setting",
+          "Structured, organized environment",
+          "Flexible, creative workspace"
+        ],
+        icon: <BookIcon className="h-5 w-5 text-blue-700" />,
+        category: "learning",
+      },
+      {
+        question: "What kind of projects excite you the most?",
+        type: "radio",
+        options: [
+          "Technology and coding projects",
+          "Creative and design projects",
+          "Research and analysis projects", 
+          "Social impact and community projects",
+          "Business and entrepreneurial projects"
+        ],
+        icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
+        category: "interests",
+      },
+      {
+        question: "When working in a team, what role do you naturally take?",
+        type: "radio",
+        options: [
+          "The strategic leader who guides direction",
+          "The creative innovator with new ideas", 
+          "The detail-oriented organizer",
+          "The supportive collaborator",
+          "The technical problem-solver"
+        ],
+        icon: <UserIcon className="h-5 w-5 text-blue-700" />,
+        category: "skills",
+      },
+      {
+        question: "How excited are you about learning cutting-edge technologies?",
+        type: "radio",
+        options: [
+          "Extremely excited - I love being on the cutting edge",
+          "Very interested - I adapt quickly to new tech",
+          "Moderately interested - I'll learn what's needed",
+          "Somewhat hesitant - I prefer proven technologies",
+          "Not very interested - I focus on other skills"
+        ],
+        icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
+        category: "mindset",
+      }
+    ];
+
+    // Add more questions to reach 25 total
+    for (let i = 6; i < 25; i++) {
+      defaultQuestions.push({
+        question: `Additional assessment question ${i - 4}: What motivates you most in your learning journey?`,
+        type: "radio",
+        options: [
+          "Achieving mastery and expertise",
+          "Making a positive impact on others",
+          "Financial success and stability",
+          "Creative expression and innovation",
+          "Recognition and acknowledgment"
         ],
         icon: <TrendingUpIcon className="h-5 w-5 text-blue-700" />,
-        category: "leadership-style",
+        category: "motivation",
       });
     }
 
-    return adaptiveQuestions;
+    return defaultQuestions;
   };
 
-  const getAllQuestions = () => {
-    const adaptive = getAdaptiveQuestions();
-    return [...baseQuestions, ...adaptive];
-  };
-
-  const questions = getAllQuestions();
+  // Initialize questions when quiz starts
+  useEffect(() => {
+    if (quizStarted && questions.length === 0) {
+      const initQuestions = async () => {
+        const adaptive = await generateAdaptiveQuestions(answers);
+        const allQuestions = [...baseQuestions, ...adaptive];
+        setQuestions(allQuestions.slice(0, 25)); // Ensure exactly 25 questions
+        setQuestionCount(Math.min(25, allQuestions.length));
+      };
+      initQuestions();
+    }
+  }, [quizStarted, answers]);
 
   const createQuizSession = async () => {
     try {
@@ -257,19 +268,12 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       setUserName(value);
     }
     
-    const questionText = questions[currentQuestion].question;
+    const questionText = questions[currentQuestion]?.question || "";
     setAnswers({ ...answers, [questionText]: value });
-    
-    // Dynamic question count adjustment
-    if (currentQuestion === 5) {
-      if (value.length > 50) {
-        setQuestionCount(Math.min(questionCount + 2, questions.length));
-      }
-    }
   };
 
   const handleNext = async () => {
-    const questionText = questions[currentQuestion].question;
+    const questionText = questions[currentQuestion]?.question || "";
     
     if (!answers[questionText]) {
       toast({
@@ -294,7 +298,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
           session_id: currentSessionId,
           user_id: userId,
           question_number: currentQuestion + 1,
-          question_category: questions[currentQuestion].category,
+          question_category: questions[currentQuestion]?.category || "general",
           question_text: questionText,
           answer_text: answers[questionText]
         });
@@ -308,6 +312,14 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
 
       if (currentQuestion < Math.min(questionCount, questions.length) - 1) {
         setCurrentQuestion(currentQuestion + 1);
+        
+        // Generate more questions dynamically if needed
+        if (currentQuestion === 4 && questions.length < 25) {
+          const additionalQuestions = await generateAdaptiveQuestions(answers);
+          const updatedQuestions = [...questions, ...additionalQuestions];
+          setQuestions(updatedQuestions.slice(0, 25));
+          setQuestionCount(Math.min(25, updatedQuestions.length));
+        }
       } else {
         // Quiz completed - trigger AI analysis
         await completeQuiz(currentSessionId);
@@ -473,6 +485,20 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     );
   }
 
+  if (loadingQuestions || questions.length === 0) {
+    return (
+      <Card className="bg-white shadow-lg border border-blue-100">
+        <CardContent className="pt-6">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-blue-900 mb-2">Preparing Your Assessment</h3>
+            <p className="text-blue-700">Our AI is creating personalized questions just for you...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const question = questions[currentQuestion];
   const progress = ((currentQuestion + 1) / questionCount) * 100;
   
@@ -514,9 +540,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
                 {question.category === "learning" && "Learning Style"}
                 {question.category === "mindset" && "Your Mindset"}
                 {question.category === "personality" && "Personality"}
-                {question.category === "tech-specialization" && "Tech Focus"}
-                {question.category === "creative-specialization" && "Creative Focus"}
-                {question.category === "leadership-style" && "Leadership Style"}
+                {question.category === "motivation" && "Your Motivation"}
+                {question.category === "general" && "Assessment"}
               </h3>
             </div>
           </div>
@@ -552,7 +577,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
           <Button 
             onClick={handleNext} 
             size="lg"
-            disabled={processing}
+            disabled={processing || loadingQuestions}
             className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-blue-900 font-semibold px-8 py-3"
           >
             {currentQuestion < Math.min(questionCount, questions.length) - 1 ? (
