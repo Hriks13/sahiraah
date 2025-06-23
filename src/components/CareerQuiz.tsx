@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +17,7 @@ interface QuizQuestion {
   placeholder?: string;
   icon: React.ReactNode;
   category: string;
+  reasoning?: string;
 }
 
 interface QuizProps {
@@ -29,7 +29,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(-1);
   const [userName, setUserName] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
-  const [questionCount, setQuestionCount] = useState(25);
+  const [questionCount, setQuestionCount] = useState(20);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -39,6 +39,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
   const [processing, setProcessing] = useState(false);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [questionsGenerated, setQuestionsGenerated] = useState(false);
 
   // Verify authentication
   useEffect(() => {
@@ -57,8 +58,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     checkAuth();
   }, [navigate, toast]);
 
-  // Base foundation questions
-  const baseQuestions: QuizQuestion[] = [
+  // Base foundation questions (these are asked first to gather context)
+  const getFoundationQuestions = (): QuizQuestion[] => [
     {
       question: "What's your name?",
       type: "text",
@@ -74,9 +75,9 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       category: "personal",
     },
     {
-      question: "Which subjects do you enjoy the most in school?",
+      question: "Which subjects or areas interest you the most?",
       type: "text",
-      placeholder: "E.g., Mathematics, Science, Computer Science, Arts...",
+      placeholder: "E.g., Technology, Arts, Science, Business, Healthcare...",
       icon: <BookIcon className="h-5 w-5 text-blue-700" />,
       category: "interests",
     },
@@ -92,9 +93,82 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       ],
       icon: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
       category: "personality",
-    },
+    }
+  ];
+
+  // Generate personalized questions based on user responses
+  const generatePersonalizedQuestions = async (userAnswers: Record<string, string>, questionNumber: number) => {
+    setLoadingQuestions(true);
+    console.log('Generating personalized questions with context:', { userAnswers, questionNumber });
+    
+    try {
+      const response = await supabase.functions.invoke('generate-adaptive-questions', {
+        body: {
+          answers: userAnswers,
+          educationLevel,
+          userName,
+          currentQuestionNumber: questionNumber
+        }
+      });
+
+      if (response.error) {
+        console.error('Supabase function error:', response.error);
+        throw new Error(response.error.message || 'Failed to generate questions');
+      }
+      
+      const result = response.data;
+      console.log('Generated questions result:', result);
+
+      if (result?.questions && Array.isArray(result.questions)) {
+        const personalizedQuestions = result.questions.map((q: any) => ({
+          question: q.question,
+          type: q.type,
+          options: q.options,
+          placeholder: q.placeholder,
+          category: q.category,
+          reasoning: q.reasoning,
+          icon: getCategoryIcon(q.category)
+        }));
+
+        return personalizedQuestions;
+      } else {
+        throw new Error('Invalid response format from question generation');
+      }
+    } catch (error) {
+      console.error('Error generating personalized questions:', error);
+      toast({
+        title: "Using standard questions",
+        description: "Unable to generate personalized questions. Using our comprehensive assessment.",
+        variant: "default",
+      });
+      return getDefaultQuestions();
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
+
+  // Get icon for category
+  const getCategoryIcon = (category: string) => {
+    const iconMap: Record<string, React.ReactNode> = {
+      personal: <UserIcon className="h-5 w-5 text-blue-700" />,
+      interests: <BookIcon className="h-5 w-5 text-blue-700" />,
+      personality: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
+      skills: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
+      technology: <CodeIcon className="h-5 w-5 text-blue-700" />,
+      career_vision: <RocketIcon className="h-5 w-5 text-blue-700" />,
+      motivation: <TrendingUpIcon className="h-5 w-5 text-blue-700" />,
+      learning_style: <GraduationCapIcon className="h-5 w-5 text-blue-700" />,
+      work_environment: <UserIcon className="h-5 w-5 text-blue-700" />,
+      problem_solving: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
+      social_impact: <SparklesIcon className="h-5 w-5 text-blue-700" />
+    };
+    return iconMap[category] || <UserIcon className="h-5 w-5 text-blue-700" />;
+  };
+
+  // Fallback questions if AI generation fails
+  const getDefaultQuestions = (): QuizQuestion[] => [
     {
-      question: "How do you approach solving complex problems?",
+      question: "How do you prefer to solve complex problems?",
       type: "radio",
       options: [
         "Break down into smaller, manageable parts",
@@ -105,138 +179,30 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       ],
       icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
       category: "analytical",
+    },
+    {
+      question: "What motivates you most in your learning journey?",
+      type: "radio",
+      options: [
+        "Achieving mastery and expertise",
+        "Making a positive impact on others",
+        "Financial success and stability",
+        "Creative expression and innovation",
+        "Recognition and acknowledgment"
+      ],
+      icon: <TrendingUpIcon className="h-5 w-5 text-blue-700" />,
+      category: "motivation",
     }
   ];
 
-  // Generate AI-powered questions based on user responses
-  const generateAdaptiveQuestions = async (userAnswers: Record<string, string>) => {
-    setLoadingQuestions(true);
-    try {
-      const response = await fetch('/functions/v1/generate-adaptive-questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        },
-        body: JSON.stringify({
-          answers: userAnswers,
-          educationLevel,
-          userName
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to generate questions');
-      
-      const result = await response.json();
-      return result.questions || [];
-    } catch (error) {
-      console.error('Error generating adaptive questions:', error);
-      toast({
-        title: "Using default questions",
-        description: "Unable to generate personalized questions. Using standard assessment.",
-      });
-      return getDefaultAdaptiveQuestions();
-    } finally {
-      setLoadingQuestions(false);
-    }
-  };
-
-  // Fallback adaptive questions
-  const getDefaultAdaptiveQuestions = (): QuizQuestion[] => {
-    const defaultQuestions: QuizQuestion[] = [
-      {
-        question: "What activities or hobbies do you enjoy in your free time?",
-        type: "text",
-        placeholder: "E.g., Coding, Reading, Sports, Art, Music...",
-        icon: <UserIcon className="h-5 w-5 text-blue-700" />,
-        category: "interests",
-      },
-      {
-        question: "In which environment do you learn and work best?",
-        type: "radio",
-        options: [
-          "Quiet, focused individual work",
-          "Collaborative team environment", 
-          "Dynamic, fast-paced setting",
-          "Structured, organized environment",
-          "Flexible, creative workspace"
-        ],
-        icon: <BookIcon className="h-5 w-5 text-blue-700" />,
-        category: "learning",
-      },
-      {
-        question: "What kind of projects excite you the most?",
-        type: "radio",
-        options: [
-          "Technology and coding projects",
-          "Creative and design projects",
-          "Research and analysis projects", 
-          "Social impact and community projects",
-          "Business and entrepreneurial projects"
-        ],
-        icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-        category: "interests",
-      },
-      {
-        question: "When working in a team, what role do you naturally take?",
-        type: "radio",
-        options: [
-          "The strategic leader who guides direction",
-          "The creative innovator with new ideas", 
-          "The detail-oriented organizer",
-          "The supportive collaborator",
-          "The technical problem-solver"
-        ],
-        icon: <UserIcon className="h-5 w-5 text-blue-700" />,
-        category: "skills",
-      },
-      {
-        question: "How excited are you about learning cutting-edge technologies?",
-        type: "radio",
-        options: [
-          "Extremely excited - I love being on the cutting edge",
-          "Very interested - I adapt quickly to new tech",
-          "Moderately interested - I'll learn what's needed",
-          "Somewhat hesitant - I prefer proven technologies",
-          "Not very interested - I focus on other skills"
-        ],
-        icon: <CodeIcon className="h-5 w-5 text-blue-700" />,
-        category: "mindset",
-      }
-    ];
-
-    // Add more questions to reach 25 total
-    for (let i = 6; i < 25; i++) {
-      defaultQuestions.push({
-        question: `Additional assessment question ${i - 4}: What motivates you most in your learning journey?`,
-        type: "radio",
-        options: [
-          "Achieving mastery and expertise",
-          "Making a positive impact on others",
-          "Financial success and stability",
-          "Creative expression and innovation",
-          "Recognition and acknowledgment"
-        ],
-        icon: <TrendingUpIcon className="h-5 w-5 text-blue-700" />,
-        category: "motivation",
-      });
-    }
-
-    return defaultQuestions;
-  };
-
-  // Initialize questions when quiz starts
+  // Initialize foundation questions when quiz starts
   useEffect(() => {
     if (quizStarted && questions.length === 0) {
-      const initQuestions = async () => {
-        const adaptive = await generateAdaptiveQuestions(answers);
-        const allQuestions = [...baseQuestions, ...adaptive];
-        setQuestions(allQuestions.slice(0, 25)); // Ensure exactly 25 questions
-        setQuestionCount(Math.min(25, allQuestions.length));
-      };
-      initQuestions();
+      const foundationQuestions = getFoundationQuestions();
+      setQuestions(foundationQuestions);
+      setQuestionCount(foundationQuestions.length + 16); // Foundation + personalized
     }
-  }, [quizStarted, answers]);
+  }, [quizStarted]);
 
   const createQuizSession = async () => {
     try {
@@ -310,16 +276,23 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         setEducationLevel(answers[questionText]);
       }
 
-      if (currentQuestion < Math.min(questionCount, questions.length) - 1) {
-        setCurrentQuestion(currentQuestion + 1);
+      // Generate personalized questions after foundation questions (after question 3)
+      if (currentQuestion === 3 && !questionsGenerated) {
+        console.log('Generating personalized questions after foundation questions...');
+        const personalizedQuestions = await generatePersonalizedQuestions(answers, currentQuestion + 1);
+        const allQuestions = [...questions, ...personalizedQuestions];
+        setQuestions(allQuestions);
+        setQuestionCount(allQuestions.length);
+        setQuestionsGenerated(true);
         
-        // Generate more questions dynamically if needed
-        if (currentQuestion === 4 && questions.length < 25) {
-          const additionalQuestions = await generateAdaptiveQuestions(answers);
-          const updatedQuestions = [...questions, ...additionalQuestions];
-          setQuestions(updatedQuestions.slice(0, 25));
-          setQuestionCount(Math.min(25, updatedQuestions.length));
-        }
+        toast({
+          title: "Questions Personalized!",
+          description: "We've customized the remaining questions based on your responses.",
+        });
+      }
+
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1);
       } else {
         // Quiz completed - trigger AI analysis
         await completeQuiz(currentSessionId);
@@ -338,31 +311,30 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     setProcessing(true);
     
     try {
-      const response = await fetch('/functions/v1/analyze-career-guidance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        },
-        body: JSON.stringify({
+      const response = await supabase.functions.invoke('analyze-career-guidance', {
+        body: {
           sessionId,
           userId,
           answers,
           studentName: userName,
           educationLevel
-        })
+        }
       });
 
-      const result = await response.json();
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
       
-      if (result.success) {
+      const result = response.data;
+      
+      if (result?.success) {
         toast({
           title: "Analysis Complete!",
           description: "Your personalized career recommendations are ready."
         });
         onComplete(sessionId);
       } else {
-        throw new Error(result.error);
+        throw new Error(result?.error || 'Analysis failed');
       }
     } catch (error) {
       console.error('Error completing quiz:', error);
@@ -485,14 +457,27 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     );
   }
 
-  if (loadingQuestions || questions.length === 0) {
+  if (loadingQuestions) {
     return (
       <Card className="bg-white shadow-lg border border-blue-100">
         <CardContent className="pt-6">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h3 className="text-xl font-semibold text-blue-900 mb-2">Preparing Your Assessment</h3>
-            <p className="text-blue-700">Our AI is creating personalized questions just for you...</p>
+            <h3 className="text-xl font-semibold text-blue-900 mb-2">Personalizing Your Assessment</h3>
+            <p className="text-blue-700">Our AI is creating questions tailored specifically for you...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <Card className="bg-white shadow-lg border border-blue-100">
+        <CardContent className="pt-6">
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-blue-900 mb-2">Preparing Assessment</h3>
+            <p className="text-blue-700">Getting ready to start your personalized career discovery...</p>
           </div>
         </CardContent>
       </Card>
@@ -519,10 +504,15 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         {userName && (
           <div className="mb-6 pb-4 border-b border-gray-200 bg-blue-50 p-4 rounded-lg">
             <p className="text-blue-800 font-medium">
-              {currentQuestion <= 2
+              {currentQuestion <= 3
                 ? `Hi ${userName}! Let's understand your background and interests.` 
-                : `Great progress, ${userName}! Let's explore your career potential...`}
+                : questionsGenerated
+                ? `Great progress, ${userName}! These questions are personalized based on your responses...`
+                : `Excellent, ${userName}! We're tailoring the next questions just for you...`}
             </p>
+            {question.reasoning && currentQuestion > 3 && (
+              <p className="text-sm text-blue-600 mt-2">💡 {question.reasoning}</p>
+            )}
           </div>
         )}
         
@@ -537,10 +527,14 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
                 {question.category === "interests" && "Your Interests"}
                 {question.category === "skills" && "Your Skills"}
                 {question.category === "analytical" && "Problem Solving"}
-                {question.category === "learning" && "Learning Style"}
-                {question.category === "mindset" && "Your Mindset"}
+                {question.category === "learning_style" && "Learning Style"}
                 {question.category === "personality" && "Personality"}
                 {question.category === "motivation" && "Your Motivation"}
+                {question.category === "technology" && "Technology & Innovation"}
+                {question.category === "career_vision" && "Career Vision"}
+                {question.category === "work_environment" && "Work Environment"}
+                {question.category === "problem_solving" && "Problem Solving"}
+                {question.category === "social_impact" && "Social Impact"}
                 {question.category === "general" && "Assessment"}
               </h3>
             </div>
@@ -580,7 +574,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
             disabled={processing || loadingQuestions}
             className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-blue-900 font-semibold px-8 py-3"
           >
-            {currentQuestion < Math.min(questionCount, questions.length) - 1 ? (
+            {currentQuestion < questions.length - 1 ? (
               <>Next Question <RocketIcon className="ml-2 h-4 w-4" /></>
             ) : (
               <>Get My Results <SparklesIcon className="ml-2 h-4 w-4" /></>

@@ -15,44 +15,62 @@ serve(async (req) => {
   }
 
   try {
-    const { answers, educationLevel, userName } = await req.json();
+    const { answers, educationLevel, userName, currentQuestionNumber } = await req.json();
+    
+    console.log('Generating questions for:', { userName, educationLevel, currentQuestionNumber, answersCount: Object.keys(answers || {}).length });
 
-    // Create a comprehensive prompt for generating adaptive questions
-    const questionPrompt = `You are an expert career counselor specializing in creating personalized assessments for Indian students.
+    // Create context from previous answers
+    const answerContext = Object.entries(answers || {}).map(([question, answer]) => 
+      `Q: ${question}\nA: ${answer}`
+    ).join('\n\n');
 
-Based on the following student information:
-- Name: ${userName}
-- Education Level: ${educationLevel}
-- Previous Answers: ${JSON.stringify(answers, null, 2)}
+    // Create a more sophisticated prompt based on current progress
+    const questionPrompt = `You are an expert career counselor creating adaptive questions for Indian students.
 
-Generate 20 highly relevant, adaptive career assessment questions that will help identify:
-1. Career interests and passions
-2. Analytical and problem-solving abilities
-3. Leadership and teamwork preferences
-4. Technology adoption and learning agility
-5. Communication and interpersonal skills
-6. Creative thinking and innovation potential
-7. Work environment preferences
-8. Long-term career aspirations
-9. Skill development interests
-10. Industry-specific inclinations
+STUDENT PROFILE:
+- Name: ${userName || 'Student'}
+- Education Level: ${educationLevel || 'Not specified'}
+- Current Question Number: ${currentQuestionNumber || 'Initial'}
 
-Requirements:
-- Questions should be culturally relevant for Indian students
-- Include mix of multiple choice (4-5 options) and open-ended questions
-- Questions should build upon previous answers to create a coherent assessment flow
-- Focus on emerging careers and future job market trends in India
-- Include questions about AI, technology, sustainability, healthcare, and other growing sectors
+PREVIOUS RESPONSES:
+${answerContext || 'No previous responses yet'}
 
-Return JSON format:
+TASK: Generate 15 highly personalized questions that adapt to this student's responses. These questions should:
+
+1. Build upon their previous answers to create deeper insights
+2. Be culturally relevant for Indian students and job market
+3. Focus on emerging careers (AI, sustainability, healthcare tech, fintech, etc.)
+4. Mix different question types to maintain engagement
+5. Progressively reveal personality traits, skills, and interests
+
+QUESTION CATEGORIES TO INCLUDE:
+- Career interests based on previous responses
+- Problem-solving approach and analytical thinking
+- Technology adoption and digital literacy
+- Leadership and teamwork preferences
+- Learning style and skill development interests
+- Work environment and culture preferences
+- Innovation and creativity potential
+- Communication and interpersonal skills
+- Long-term career aspirations
+- Industry-specific inclinations
+
+IMPORTANT: 
+- Questions should feel conversational and personalized
+- Reference their education level appropriately
+- Include practical scenarios they might relate to
+- Focus on future-oriented career paths in India's growing economy
+
+Return exactly this JSON format:
 {
   "questions": [
     {
-      "question": "Question text",
+      "question": "Question text that builds on their responses",
       "type": "radio" or "text",
-      "options": ["option1", "option2", "option3", "option4"] (for radio type),
-      "placeholder": "hint text" (for text type),
-      "category": "category_name"
+      "options": ["option1", "option2", "option3", "option4", "option5"] (for radio type only),
+      "placeholder": "hint text" (for text type only),
+      "category": "category_name",
+      "reasoning": "Why this question is relevant based on their profile"
     }
   ]
 }`;
@@ -66,39 +84,74 @@ Return JSON format:
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
         messages: [
-          { role: 'system', content: 'You are an expert career counselor and assessment designer. Create engaging, relevant questions that help identify career paths for Indian students.' },
+          { 
+            role: 'system', 
+            content: 'You are an expert career counselor and psychologist specializing in career assessment for Indian students. You create questions that reveal deep insights about personality, skills, interests, and career potential. Always respond with valid JSON.' 
+          },
           { role: 'user', content: questionPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.7
+        temperature: 0.8,
+        max_tokens: 4000
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const aiData = await response.json();
-    const result = JSON.parse(aiData.choices[0].message.content);
+    console.log('OpenAI response received, processing questions...');
+    
+    let result;
+    try {
+      result = JSON.parse(aiData.choices[0].message.content);
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      throw new Error('Invalid JSON response from AI');
+    }
 
-    // Validate and format questions
-    const questions = result.questions.map((q: any, index: number) => ({
-      question: q.question || `Assessment question ${index + 1}`,
-      type: q.type === 'text' ? 'text' : 'radio',
-      options: q.type === 'radio' ? (q.options || [
-        "Strongly Agree",
-        "Agree", 
-        "Neutral",
-        "Disagree",
-        "Strongly Disagree"
-      ]) : undefined,
-      placeholder: q.type === 'text' ? (q.placeholder || "Your answer...") : undefined,
-      category: q.category || "assessment"
-    }));
+    // Enhanced question validation and formatting
+    const questions = (result.questions || []).map((q: any, index: number) => {
+      const questionData = {
+        question: q.question || `Assessment question ${index + 1}`,
+        type: q.type === 'text' ? 'text' : 'radio',
+        category: q.category || "assessment",
+        reasoning: q.reasoning || "General assessment"
+      };
+
+      if (questionData.type === 'radio') {
+        questionData.options = Array.isArray(q.options) && q.options.length >= 3 
+          ? q.options.slice(0, 5) // Max 5 options
+          : [
+              "Strongly Agree",
+              "Agree", 
+              "Neutral",
+              "Disagree",
+              "Strongly Disagree"
+            ];
+      } else {
+        questionData.placeholder = q.placeholder || "Please share your thoughts...";
+      }
+
+      return questionData;
+    }).slice(0, 15); // Ensure max 15 questions
+
+    console.log(`Generated ${questions.length} personalized questions`);
 
     return new Response(JSON.stringify({
       success: true,
-      questions: questions.slice(0, 20) // Ensure max 20 questions
+      questions: questions,
+      metadata: {
+        generated_at: new Date().toISOString(),
+        user_context: {
+          name: userName,
+          education: educationLevel,
+          previous_answers: Object.keys(answers || {}).length
+        }
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -106,74 +159,99 @@ Return JSON format:
   } catch (error) {
     console.error('Error generating adaptive questions:', error);
     
-    // Return fallback questions if AI fails
-    const fallbackQuestions = [
+    // Enhanced fallback questions that are more personalized
+    const personalizedFallback = [
       {
-        question: "Which emerging technology field interests you most?",
+        question: `Hi ${userName || 'there'}! What subjects or topics make you lose track of time when you're learning about them?`,
+        type: "text",
+        placeholder: "e.g., Coding, design, business strategies, psychology...",
+        category: "interests"
+      },
+      {
+        question: "When you imagine your ideal workday 5 years from now, what does it look like?",
+        type: "text",
+        placeholder: "Describe your perfect work environment and activities...",
+        category: "career_vision"
+      },
+      {
+        question: "Which emerging technology field excites you most for future career opportunities?",
         type: "radio",
         options: [
           "Artificial Intelligence & Machine Learning",
-          "Blockchain & Cryptocurrency",
-          "Internet of Things (IoT)",
-          "Augmented/Virtual Reality",
-          "Cybersecurity"
+          "Sustainable Technology & Green Energy",
+          "Biotechnology & Health Innovation",
+          "Fintech & Digital Finance",
+          "Space Technology & Exploration"
         ],
         category: "technology"
       },
       {
-        question: "What type of work environment motivates you most?",
+        question: "What motivates you more in your career aspirations?",
         type: "radio",
         options: [
-          "Fast-paced startup environment",
-          "Structured corporate setting",
-          "Remote/flexible work arrangements",
-          "Collaborative team-based work",
-          "Independent project work"
+          "Making a significant impact on society",
+          "Building financial independence and security",
+          "Continuous learning and personal growth",
+          "Recognition and professional achievement",
+          "Work-life balance and flexibility"
         ],
-        category: "work_environment"
+        category: "motivation"
       },
       {
-        question: "Which social impact area would you like to contribute to?",
+        question: "How do you typically approach complex challenges or problems?",
         type: "radio",
         options: [
-          "Education and skill development",
-          "Healthcare and medical innovation",
-          "Environmental sustainability",
-          "Financial inclusion and fintech",
-          "Rural development and agriculture"
+          "Break them down into smaller, manageable steps",
+          "Research extensively before taking action",
+          "Brainstorm creative and innovative solutions",
+          "Collaborate with others to find solutions",
+          "Trust my intuition and take quick action"
+        ],
+        category: "problem_solving"
+      },
+      {
+        question: "What type of impact would you like your career to have on India's development?",
+        type: "radio",
+        options: [
+          "Advancing technology and digital transformation",
+          "Improving healthcare and life quality",
+          "Promoting education and skill development",
+          "Driving economic growth and entrepreneurship",
+          "Addressing environmental and sustainability challenges"
         ],
         category: "social_impact"
       },
       {
-        question: "How do you prefer to learn new skills?",
+        question: "Which work environment energizes you the most?",
         type: "radio",
         options: [
-          "Hands-on practice and experimentation",
-          "Structured courses and certifications",
-          "Peer learning and collaboration",
-          "Self-directed online learning",
-          "Mentorship and guidance"
+          "Dynamic startup with rapid growth and change",
+          "Established corporate with structured processes",
+          "Remote/hybrid with maximum flexibility",
+          "Collaborative team-based environment",
+          "Independent consultant or freelancer setup"
         ],
-        category: "learning_style"
+        category: "work_environment"
       },
       {
-        question: "What motivates you most in your career goals?",
+        question: "What's your preferred way to develop new skills and knowledge?",
         type: "radio",
         options: [
-          "Making a significant impact on society",
-          "Achieving financial independence",
-          "Continuous learning and growth",
-          "Recognition and professional status",
-          "Work-life balance and flexibility"
+          "Hands-on projects and real-world application",
+          "Structured courses and certification programs",
+          "Learning from mentors and experienced professionals",
+          "Self-directed research and online resources",
+          "Peer learning and collaborative study groups"
         ],
-        category: "career_motivation"
+        category: "learning_style"
       }
     ];
 
     return new Response(JSON.stringify({
       success: true,
-      questions: fallbackQuestions,
-      fallback: true
+      questions: personalizedFallback,
+      fallback: true,
+      error_message: error.message
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
