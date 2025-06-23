@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,8 +80,9 @@ const CareerRecommendationsAI = ({ sessionId, onRetake }: Props) => {
           ? sessionData.weaknesses as string[]
           : [];
         
+        // Fix the type casting issue by going through unknown first
         const careerRecommendations = Array.isArray(sessionData.career_recommendations)
-          ? sessionData.career_recommendations as CareerRecommendation[]
+          ? (sessionData.career_recommendations as unknown) as CareerRecommendation[]
           : [];
         
         const analysis: AnalysisData = {
