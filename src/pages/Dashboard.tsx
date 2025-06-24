@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import CareerQuiz from "@/components/CareerQuiz";
-import CareerRecommendationsAI from "@/components/CareerRecommendationsAI";
+import CareerRecommendations from "@/components/CareerRecommendations";
 import ExploreResources from "@/components/ExploreResources";
 import AdBanner from "@/components/AdBanner";
 import { toast } from "@/components/ui/use-toast";
@@ -22,9 +22,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
-  const [completedSessionId, setCompletedSessionId] = useState<string | null>(null);
-  const [hasExistingResults, setHasExistingResults] = useState(false);
-  const [lastSessionId, setLastSessionId] = useState<string | null>(null);
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // Check if user is logged in with Supabase
@@ -53,7 +51,7 @@ const Dashboard = () => {
         setUser({
           id: data.session.user.id,
           name: profileData?.name || data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
-          email: profileData?.email || data.session.user.email || ''
+          email: data.session.user.email || ''
         });
 
         // Insert profile if it doesn't exist
@@ -64,23 +62,6 @@ const Dashboard = () => {
             email: data.session.user.email || ''
           });
         }
-
-        // Check for existing quiz results
-        const { data: existingSessions } = await supabase
-          .from('user_quiz_sessions')
-          .select('id, is_completed, session_completed_at')
-          .eq('user_id', data.session.user.id)
-          .eq('is_completed', true)
-          .order('session_completed_at', { ascending: false })
-          .limit(1);
-
-        if (existingSessions && existingSessions.length > 0) {
-          setHasExistingResults(true);
-          setLastSessionId(existingSessions[0].id);
-          setQuizCompleted(true);
-          setCompletedSessionId(existingSessions[0].id);
-        }
-
       } catch (error) {
         console.error("Error in session handling:", error);
         navigate("/login");
@@ -113,41 +94,29 @@ const Dashboard = () => {
 
   const handleStartQuiz = () => {
     setQuizStarted(true);
-    setQuizCompleted(false);
-    setCompletedSessionId(null);
     toast({
       title: "Quiz Started",
       description: "Career Discovery Quiz Started! Answer the questions to get personalized career recommendations."
     });
   };
 
-  const handleQuizComplete = (sessionId: string) => {
-    setCompletedSessionId(sessionId);
+  const handleQuizComplete = (answers: Record<string, string>) => {
+    setUserAnswers(answers);
     setQuizCompleted(true);
-    setQuizStarted(false);
-    setHasExistingResults(true);
     toast({
-      title: "Analysis Complete!",
-      description: "Your personalized career recommendations are ready."
+      title: "Quiz Completed",
+      description: "We're analyzing your answers to find the best career matches."
     });
   };
 
   const handleRetakeQuiz = () => {
     setQuizStarted(true);
     setQuizCompleted(false);
-    setCompletedSessionId(null);
+    setUserAnswers({});
     toast({
       title: "Quiz Restarted",
       description: "Let's explore again! Take the quiz again to discover more career paths."
     });
-  };
-
-  const handleViewLastResults = () => {
-    if (lastSessionId) {
-      setCompletedSessionId(lastSessionId);
-      setQuizCompleted(true);
-      setQuizStarted(false);
-    }
   };
 
   if (loading) {
@@ -175,12 +144,9 @@ const Dashboard = () => {
         <AdBanner size="leaderboard" className="mb-8" educationalCategory="career" />
 
         {/* Quiz Section */}
-        {quizCompleted && completedSessionId ? (
+        {quizCompleted ? (
           <>
-            <CareerRecommendationsAI 
-              sessionId={completedSessionId} 
-              onRetake={handleRetakeQuiz} 
-            />
+            <CareerRecommendations userAnswers={userAnswers} onRetake={handleRetakeQuiz} />
             {/* Mid-Dashboard Ad - Skills focused */}
             <AdBanner size="large-rectangle" className="my-8 flex justify-center" educationalCategory="skills" />
           </>
@@ -199,7 +165,7 @@ const Dashboard = () => {
               <Card className="bg-white shadow-md">
                 <CardHeader>
                   <CardTitle className="text-blue-900">Begin Your Career Discovery</CardTitle>
-                  <CardDescription>Take our comprehensive AI-powered assessment to get personalized recommendations</CardDescription>
+                  <CardDescription>Take our comprehensive assessment to get AI-powered recommendations</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col space-y-4 mb-6">
@@ -208,8 +174,8 @@ const Dashboard = () => {
                         1
                       </div>
                       <div>
-                        <h4 className="font-medium text-blue-900">Take the Adaptive Quiz</h4>
-                        <p className="text-sm text-blue-700">AI adapts questions based on your responses</p>
+                        <h4 className="font-medium text-blue-900">Take the Career Quiz</h4>
+                        <p className="text-sm text-blue-700">Answer questions about your interests and strengths</p>
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -218,7 +184,7 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <h4 className="font-medium text-blue-900">Get AI Analysis</h4>
-                        <p className="text-sm text-blue-700">Advanced algorithms analyze your strengths</p>
+                        <p className="text-sm text-blue-700">Our algorithm processes your responses</p>
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -226,8 +192,8 @@ const Dashboard = () => {
                         3
                       </div>
                       <div>
-                        <h4 className="font-medium text-blue-900">Explore Career Paths</h4>
-                        <p className="text-sm text-blue-700">Get detailed roadmaps and learning resources</p>
+                        <h4 className="font-medium text-blue-900">Explore Recommendations</h4>
+                        <p className="text-sm text-blue-700">Review personalized career paths</p>
                       </div>
                     </div>
                   </div>
@@ -237,7 +203,7 @@ const Dashboard = () => {
                     className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold w-full"
                     onClick={handleStartQuiz}
                   >
-                    Start AI Assessment
+                    Take Career Quiz
                   </Button>
                 </CardFooter>
               </Card>
@@ -246,50 +212,27 @@ const Dashboard = () => {
               <Card className="bg-white shadow-md">
                 <CardHeader>
                   <CardTitle className="text-blue-900">Your Career Recommendations</CardTitle>
-                  <CardDescription>
-                    {hasExistingResults ? "View your personalized career analysis" : "Based on your profile and responses"}
-                  </CardDescription>
+                  <CardDescription>Based on your profile and responses</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {hasExistingResults ? (
-                    <div className="text-center py-6">
-                      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-green-600 text-xl">✓</span>
-                      </div>
-                      <h4 className="text-lg font-medium text-blue-900 mb-2">Analysis Complete</h4>
-                      <p className="text-blue-700 mb-4">
-                        Your personalized career recommendations are ready to view
-                      </p>
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-blue-900 text-xl">🔎</span>
                     </div>
-                  ) : (
-                    <div className="text-center py-10">
-                      <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-blue-900 text-xl">🔎</span>
-                      </div>
-                      <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
-                      <p className="text-blue-700 mb-4">
-                        Take the career quiz to get AI-powered personalized recommendations
-                      </p>
-                    </div>
-                  )}
+                    <h4 className="text-lg font-medium text-blue-900 mb-2">No Recommendations Yet</h4>
+                    <p className="text-blue-700 mb-4">
+                      Take the career quiz to get personalized career path recommendations
+                    </p>
+                  </div>
                 </CardContent>
                 <CardFooter>
-                  {hasExistingResults ? (
-                    <Button 
-                      className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-                      onClick={handleViewLastResults}
-                    >
-                      View My Results
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
-                      onClick={handleStartQuiz}
-                    >
-                      Start Discovery Journey
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white w-full"
+                    onClick={handleStartQuiz}
+                  >
+                    Start Discovery Journey
+                  </Button>
                 </CardFooter>
               </Card>
             </div>

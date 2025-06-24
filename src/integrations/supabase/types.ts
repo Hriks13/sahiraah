@@ -80,62 +80,39 @@ export type Database = {
           career: string
           courses: Json | null
           id: string
-          improvement_areas: Json | null
           is_selected: boolean | null
           links_clicked: boolean | null
           reason: string | null
-          report_data: Json | null
           roadmap_summary: string | null
-          session_id: string | null
-          strengths: Json | null
           tags: string[] | null
           timestamp: string
           user_id: string
-          weaknesses: Json | null
         }
         Insert: {
           career: string
           courses?: Json | null
           id?: string
-          improvement_areas?: Json | null
           is_selected?: boolean | null
           links_clicked?: boolean | null
           reason?: string | null
-          report_data?: Json | null
           roadmap_summary?: string | null
-          session_id?: string | null
-          strengths?: Json | null
           tags?: string[] | null
           timestamp?: string
           user_id: string
-          weaknesses?: Json | null
         }
         Update: {
           career?: string
           courses?: Json | null
           id?: string
-          improvement_areas?: Json | null
           is_selected?: boolean | null
           links_clicked?: boolean | null
           reason?: string | null
-          report_data?: Json | null
           roadmap_summary?: string | null
-          session_id?: string | null
-          strengths?: Json | null
           tags?: string[] | null
           timestamp?: string
           user_id?: string
-          weaknesses?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_career_history_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "user_quiz_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_course_progress: {
         Row: {
@@ -267,50 +244,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_quiz_answers: {
-        Row: {
-          ai_context: Json | null
-          answer_text: string
-          created_at: string
-          id: string
-          question_category: string
-          question_number: number
-          question_text: string
-          session_id: string
-          user_id: string
-        }
-        Insert: {
-          ai_context?: Json | null
-          answer_text: string
-          created_at?: string
-          id?: string
-          question_category: string
-          question_number: number
-          question_text: string
-          session_id: string
-          user_id: string
-        }
-        Update: {
-          ai_context?: Json | null
-          answer_text?: string
-          created_at?: string
-          id?: string
-          question_category?: string
-          question_number?: number
-          question_text?: string
-          session_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_quiz_answers_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "user_quiz_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_quiz_responses: {
         Row: {
           answer: string
@@ -332,57 +265,6 @@ export type Database = {
           id?: string
           question?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      user_quiz_sessions: {
-        Row: {
-          career_recommendations: Json | null
-          created_at: string
-          current_question_index: number | null
-          education_level: string | null
-          id: string
-          is_completed: boolean | null
-          session_completed_at: string | null
-          session_started_at: string
-          strengths: Json | null
-          student_name: string | null
-          total_questions: number | null
-          updated_at: string
-          user_id: string
-          weaknesses: Json | null
-        }
-        Insert: {
-          career_recommendations?: Json | null
-          created_at?: string
-          current_question_index?: number | null
-          education_level?: string | null
-          id?: string
-          is_completed?: boolean | null
-          session_completed_at?: string | null
-          session_started_at?: string
-          strengths?: Json | null
-          student_name?: string | null
-          total_questions?: number | null
-          updated_at?: string
-          user_id: string
-          weaknesses?: Json | null
-        }
-        Update: {
-          career_recommendations?: Json | null
-          created_at?: string
-          current_question_index?: number | null
-          education_level?: string | null
-          id?: string
-          is_completed?: boolean | null
-          session_completed_at?: string | null
-          session_started_at?: string
-          strengths?: Json | null
-          student_name?: string | null
-          total_questions?: number | null
-          updated_at?: string
-          user_id?: string
-          weaknesses?: Json | null
         }
         Relationships: []
       }
