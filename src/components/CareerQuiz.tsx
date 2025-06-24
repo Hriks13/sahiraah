@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { BookIcon, CodeIcon, UserIcon, BrainCogIcon, LightbulbIcon, GraduationCapIcon, RocketIcon, SparklesIcon, TrendingUpIcon } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -111,6 +112,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         }
       });
 
+      console.log('Supabase function response:', response);
+
       if (response.error) {
         console.error('Supabase function error:', response.error);
         throw new Error(response.error.message || 'Failed to generate questions');
@@ -130,6 +133,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
           icon: getCategoryIcon(q.category)
         }));
 
+        console.log(`Successfully generated ${personalizedQuestions.length} personalized questions`);
         return personalizedQuestions;
       } else {
         throw new Error('Invalid response format from question generation');
@@ -138,7 +142,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       console.error('Error generating personalized questions:', error);
       toast({
         title: "Using standard questions",
-        description: "Unable to generate personalized questions. Using our comprehensive assessment.",
+        description: "Personalizing your assessment with our comprehensive question set.",
         variant: "default",
       });
       return getDefaultQuestions();
@@ -160,7 +164,11 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       learning_style: <GraduationCapIcon className="h-5 w-5 text-blue-700" />,
       work_environment: <UserIcon className="h-5 w-5 text-blue-700" />,
       problem_solving: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
-      social_impact: <SparklesIcon className="h-5 w-5 text-blue-700" />
+      social_impact: <SparklesIcon className="h-5 w-5 text-blue-700" />,
+      teamwork: <UserIcon className="h-5 w-5 text-blue-700" />,
+      work_style: <BrainCogIcon className="h-5 w-5 text-blue-700" />,
+      team_role: <UserIcon className="h-5 w-5 text-blue-700" />,
+      assessment: <LightbulbIcon className="h-5 w-5 text-blue-700" />
     };
     return iconMap[category] || <UserIcon className="h-5 w-5 text-blue-700" />;
   };
@@ -178,7 +186,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
         "Collaborate with others for ideas"
       ],
       icon: <LightbulbIcon className="h-5 w-5 text-blue-700" />,
-      category: "analytical",
+      category: "problem_solving",
     },
     {
       question: "What motivates you most in your learning journey?",
@@ -192,6 +200,32 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
       ],
       icon: <TrendingUpIcon className="h-5 w-5 text-blue-700" />,
       category: "motivation",
+    },
+    {
+      question: "Which work environment appeals to you most?",
+      type: "radio",
+      options: [
+        "Fast-paced startup environment",
+        "Structured corporate setting",
+        "Creative agency or studio",
+        "Research institution or lab",
+        "Remote/flexible work setup"
+      ],
+      icon: <UserIcon className="h-5 w-5 text-blue-700" />,
+      category: "work_environment",
+    },
+    {
+      question: "What type of projects excite you the most?",
+      type: "radio",
+      options: [
+        "Technology and coding projects",
+        "Creative and design projects",
+        "Research and analysis projects",
+        "Business and strategy projects",
+        "Social impact and community projects"
+      ],
+      icon: <RocketIcon className="h-5 w-5 text-blue-700" />,
+      category: "interests",
     }
   ];
 
@@ -200,7 +234,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     if (quizStarted && questions.length === 0) {
       const foundationQuestions = getFoundationQuestions();
       setQuestions(foundationQuestions);
-      setQuestionCount(foundationQuestions.length + 16); // Foundation + personalized
+      setQuestionCount(foundationQuestions.length + 12); // Foundation + personalized
     }
   }, [quizStarted]);
 
@@ -311,6 +345,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
     setProcessing(true);
     
     try {
+      console.log('Completing quiz with session:', sessionId);
+      
       const response = await supabase.functions.invoke('analyze-career-guidance', {
         body: {
           sessionId,
@@ -320,6 +356,8 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
           educationLevel
         }
       });
+
+      console.log('Analysis response:', response);
 
       if (response.error) {
         throw new Error(response.error.message);
@@ -464,7 +502,7 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <h3 className="text-xl font-semibold text-blue-900 mb-2">Personalizing Your Assessment</h3>
-            <p className="text-blue-700">Our AI is creating questions tailored specifically for you...</p>
+            <p className="text-blue-700">Creating questions tailored specifically for you...</p>
           </div>
         </CardContent>
       </Card>
@@ -526,8 +564,6 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
                 {question.category === "personal" && "About You"}
                 {question.category === "interests" && "Your Interests"}
                 {question.category === "skills" && "Your Skills"}
-                {question.category === "analytical" && "Problem Solving"}
-                {question.category === "learning_style" && "Learning Style"}
                 {question.category === "personality" && "Personality"}
                 {question.category === "motivation" && "Your Motivation"}
                 {question.category === "technology" && "Technology & Innovation"}
@@ -535,7 +571,12 @@ const CareerQuiz = ({ userId, onComplete }: QuizProps) => {
                 {question.category === "work_environment" && "Work Environment"}
                 {question.category === "problem_solving" && "Problem Solving"}
                 {question.category === "social_impact" && "Social Impact"}
-                {question.category === "general" && "Assessment"}
+                {question.category === "learning_style" && "Learning Style"}
+                {question.category === "teamwork" && "Teamwork"}
+                {question.category === "work_style" && "Work Style"}
+                {question.category === "team_role" && "Team Role"}
+                {question.category === "assessment" && "Assessment"}
+                {!["personal", "interests", "skills", "personality", "motivation", "technology", "career_vision", "work_environment", "problem_solving", "social_impact", "learning_style", "teamwork", "work_style", "team_role", "assessment"].includes(question.category) && "Assessment"}
               </h3>
             </div>
           </div>
