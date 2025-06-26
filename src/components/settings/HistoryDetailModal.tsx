@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpenIcon, ExternalLinkIcon, ClockIcon, TagIcon, TrendingUpIcon, FileTextIcon } from "lucide-react";
 import { generateCareerReport } from "@/utils/reportGenerator";
 import { CareerReport } from "../CareerReport";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HistoryDetailModalProps {
   isOpen: boolean;

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -239,6 +238,8 @@ export const CareerReport = ({ reportData, onClose, onDownloadPDF }: CareerRepor
               <TabsTrigger value="roadmap">Learning Roadmap</TabsTrigger>
               <TabsTrigger value="resources">Courses & Resources</TabsTrigger>
             </TabsList>
+
+            
 
             <TabsContent value="overview" className="space-y-6">
               <Card>
