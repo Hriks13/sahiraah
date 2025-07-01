@@ -19,22 +19,29 @@ interface AIQuizProps {
 
 interface AIQuestion {
   id: string;
-  question: string;
+  text: string;
   type: 'radio' | 'text' | 'textarea';
   options?: string[];
 }
 
+interface SessionContext {
+  phase: string;
+  questionCount: number;
+  readyForRecommendations: boolean;
+}
+
 const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
-  const [currentQuestion, setCurrentQuestion] = useState(-1);
-  const [questions, setQuestions] = useState<AIQuestion[]>([]);
-  const [allAnswers, setAllAnswers] = useState<Array<{question: string, answer: string}>>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<AIQuestion | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState("");
-  const [studentName, setStudentName] = useState("");
-  const [educationLevel, setEducationLevel] = useState("");
+  const [allAnswers, setAllAnswers] = useState<Array<{question: string, answer: string}>>([]);
+  const [sessionContext, setSessionContext] = useState<SessionContext>({
+    phase: "initial_discovery",
+    questionCount: 0,
+    readyForRecommendations: false
+  });
   const [loading, setLoading] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -54,25 +61,41 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
     checkAuth();
   }, [navigate, toast]);
 
-  const startAIQuiz = async () => {
+  const startAISession = async () => {
     setLoading(true);
     try {
-      // Start with name question
-      const nameQuestion: AIQuestion = {
-        id: "name",
-        question: "What's your name? (This helps me personalize your experience)",
-        type: "text"
-      };
+      console.log("Starting AI session...");
+      
+      const { data, error } = await supabase.functions.invoke('ai-career-guidance', {
+        body: {
+          action: 'start_ai_session',
+          data: {},
+          userId
+        }
+      });
 
-      setQuestions([nameQuestion]);
-      setQuizStarted(true);
-      setCurrentQuestion(0);
-      setQuestionCount(1);
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
+
+      console.log("AI Session Response:", data);
+
+      if (data.question) {
+        setCurrentQuestion(data.question);
+        setSessionContext(data.sessionContext);
+        setQuizStarted(true);
+        
+        toast({
+          title: "AI Session Started!",
+          description: "Our AI has crafted your first personalized question",
+        });
+      }
     } catch (error) {
-      console.error("Error starting AI quiz:", error);
+      console.error("Error starting AI session:", error);
       toast({
         title: "Error",
-        description: "Failed to start the AI quiz. Please try again.",
+        description: "Failed to start the AI session. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -80,18 +103,25 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
     }
   };
 
-  const generateNextQuestion = async () => {
+  const handleAnswer = async (value: string) => {
+    if (!value.trim() || !currentQuestion) return;
+
     setLoading(true);
     try {
-      console.log("Generating next question with answers:", allAnswers);
-      
+      const answerRecord = { question: currentQuestion.text, answer: value };
+      const updatedAnswers = [...allAnswers, answerRecord];
+      setAllAnswers(updatedAnswers);
+
+      console.log("Processing answer:", value);
+      console.log("Current session context:", sessionContext);
+
       const { data, error } = await supabase.functions.invoke('ai-career-guidance', {
         body: {
-          action: 'generate_adaptive_questions',
+          action: 'process_answer_and_continue',
           data: {
-            previousAnswers: allAnswers,
-            educationLevel,
-            currentQuestionIndex: questionCount
+            currentAnswer: value,
+            previousAnswers: updatedAnswers,
+            sessionContext
           },
           userId
         }
@@ -104,115 +134,32 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
 
       console.log("AI Response:", data);
 
-      if (data.questions && data.questions.length > 0) {
-        setQuestions(prev => [...prev, ...data.questions]);
-        setQuestionCount(prev => prev + data.questions.length);
-        setIsComplete(data.isComplete || false);
+      if (data.action === 'continue_questioning') {
+        // AI wants to ask another question
+        setCurrentQuestion(data.question);
+        setSessionContext(data.sessionContext);
+        setAiAnalysis(data.analysis);
+        setCurrentAnswer("");
         
         toast({
-          title: "AI Generated Question",
-          description: data.reasoning || "AI has crafted the next question based on your responses",
+          title: "AI Analysis Complete",
+          description: data.analysis.reasoning,
         });
-      } else {
-        // No more questions, proceed to analysis
-        setIsComplete(true);
+      } else if (data.action === 'provide_recommendations') {
+        // AI has enough information and provided recommendations
+        toast({
+          title: "AI Analysis Complete!",
+          description: "Our AI has generated your personalized career recommendations",
+          duration: 5000,
+        });
+        
+        onComplete(data);
       }
     } catch (error) {
-      console.error("Error generating next question:", error);
-      toast({
-        title: "AI Enhancement",
-        description: "Continuing with analysis...",
-      });
-      setIsComplete(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAnswer = async (value: string) => {
-    if (!value.trim()) return;
-
-    const question = questions[currentQuestion];
-    const answerRecord = { question: question.question, answer: value };
-    
-    // Store answer in local state
-    setAllAnswers(prev => [...prev, answerRecord]);
-    
-    // Store answer in database
-    try {
-      await supabase
-        .from('user_quiz_responses')
-        .insert({
-          user_id: userId,
-          question: question.question,
-          answer: value
-        });
-
-      // Handle special first questions
-      if (question.id === "name") {
-        setStudentName(value);
-      } else if (question.question.toLowerCase().includes("education level")) {
-        setEducationLevel(value);
-      }
-
-      // Check if this was the last question or if we should generate more
-      if (isComplete || allAnswers.length >= 4) {
-        // We have enough answers, proceed to analysis
-        await analyzeAndComplete([...allAnswers, answerRecord]);
-      } else if (currentQuestion < questions.length - 1) {
-        // Move to next existing question
-        setCurrentQuestion(currentQuestion + 1);
-        setCurrentAnswer("");
-      } else {
-        // Generate next question
-        await generateNextQuestion();
-        setCurrentQuestion(currentQuestion + 1);
-        setCurrentAnswer("");
-      }
-    } catch (error) {
-      console.error("Error storing answer:", error);
+      console.error("Error processing answer:", error);
       toast({
         title: "Error",
-        description: "Failed to save your answer. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const analyzeAndComplete = async (finalAnswers: Array<{question: string, answer: string}>) => {
-    setLoading(true);
-    try {
-      toast({
-        title: "AI Analysis in Progress",
-        description: "Our AI is analyzing your responses to generate personalized recommendations...",
-      });
-
-      // Convert answers to the format expected by the backend
-      const responsesObject = finalAnswers.reduce((acc, item) => {
-        acc[item.question] = item.answer;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const { data, error } = await supabase.functions.invoke('ai-career-guidance', {
-        body: {
-          action: 'analyze_responses',
-          data: {
-            responses: responsesObject,
-            educationLevel,
-            studentName
-          },
-          userId
-        }
-      });
-
-      if (error) throw error;
-
-      onComplete(data);
-    } catch (error) {
-      console.error("Error analyzing responses:", error);
-      toast({
-        title: "Analysis Error",
-        description: "Failed to analyze responses. Please try again.",
+        description: "Failed to process your answer. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -230,38 +177,39 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
             </div>
             
             <h1 className="text-3xl font-bold text-blue-900 mb-2">AI-Powered Career Discovery</h1>
-            <h2 className="text-xl text-purple-700 mb-6">Intelligent Questions, Personalized Guidance</h2>
+            <h2 className="text-xl text-purple-700 mb-6">Completely AI-Driven Career Guidance</h2>
             
             <p className="text-blue-800 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-              Experience truly adaptive career guidance where our AI asks personalized questions based on your unique responses, 
-              leading to highly customized career recommendations for the Indian job market.
+              Experience the future of career guidance where our AI generates personalized questions, 
+              analyzes your responses in real-time, and provides comprehensive career recommendations 
+              tailored specifically for the Indian job market.
             </p>
 
             <div className="grid md:grid-cols-3 gap-4 mb-8">
               <div className="bg-white/70 p-4 rounded-lg border border-purple-200">
                 <SparklesIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                <p className="text-blue-800 font-medium">Dynamic AI Questions</p>
-                <p className="text-sm text-gray-600">Each question builds on your previous answers</p>
+                <p className="text-blue-800 font-medium">AI-Generated Questions</p>
+                <p className="text-sm text-gray-600">Every question is crafted by AI based on your responses</p>
               </div>
               <div className="bg-white/70 p-4 rounded-lg border border-purple-200">
                 <LightbulbIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                <p className="text-blue-800 font-medium">Intelligent Analysis</p>
-                <p className="text-sm text-gray-600">AI understands your unique profile</p>
+                <p className="text-blue-800 font-medium">Real-Time Analysis</p>
+                <p className="text-sm text-gray-600">AI analyzes each answer to understand your profile</p>
               </div>
               <div className="bg-white/70 p-4 rounded-lg border border-purple-200">
                 <RocketIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                <p className="text-blue-800 font-medium">Personalized Results</p>
-                <p className="text-sm text-gray-600">Tailored career paths just for you</p>
+                <p className="text-blue-800 font-medium">Intelligent Recommendations</p>
+                <p className="text-sm text-gray-600">AI-driven career paths with detailed guidance</p>
               </div>
             </div>
 
             <Button 
-              onClick={startAIQuiz}
+              onClick={startAISession}
               size="lg"
               disabled={loading}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-8 py-3 text-lg shadow-lg"
             >
-              {loading ? "Starting AI Discovery..." : "Begin AI Career Discovery"}
+              {loading ? "Initializing AI..." : "Start AI Career Discovery"}
               <SparklesIcon className="ml-2 h-5 w-5" />
             </Button>
           </div>
@@ -278,32 +226,30 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
             <div className="animate-spin h-12 w-12 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-4"></div>
             <h3 className="text-xl font-semibold text-blue-900 mb-2">AI Processing...</h3>
             <p className="text-purple-700 mb-4">
-              {allAnswers.length === 0 ? "Preparing your first question..." : 
-               isComplete ? "Analyzing your responses..." : 
-               "Crafting your next question..."}
+              {allAnswers.length === 0 ? "AI is generating your first question..." : 
+               "AI is analyzing your response and crafting the next question..."}
             </p>
-            <Progress value={allAnswers.length === 0 ? 10 : isComplete ? 90 : 50} className="w-full max-w-md mx-auto" />
+            <Progress value={allAnswers.length === 0 ? 20 : 60} className="w-full max-w-md mx-auto" />
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const question = questions[currentQuestion];
-  if (!question) {
+  if (!currentQuestion) {
     return (
       <Card className="bg-white shadow-lg border border-purple-100">
         <CardContent className="pt-6">
           <div className="text-center py-8">
-            <h3 className="text-xl font-semibold text-blue-900 mb-2">Preparing Your Question...</h3>
-            <p className="text-purple-700">Our AI is crafting the perfect question for you.</p>
+            <h3 className="text-xl font-semibold text-blue-900 mb-2">AI is thinking...</h3>
+            <p className="text-purple-700">Our AI is processing your responses.</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const progress = Math.min(((allAnswers.length + 1) / Math.max(questionCount + 2, 6)) * 100, 90);
+  const progress = Math.min(((allAnswers.length + 1) / 6) * 100, 90);
 
   return (
     <Card className="bg-white shadow-lg border border-purple-100">
@@ -311,18 +257,22 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-purple-700">
-              Question {allAnswers.length + 1} of {Math.max(questionCount + 1, 6)}
+              AI Question {allAnswers.length + 1}
             </span>
             <span className="text-sm text-purple-600">{Math.round(progress)}% Complete</span>
           </div>
           <Progress value={progress} className="h-3 bg-purple-50" />
         </div>
 
-        {studentName && (
+        {aiAnalysis && (
           <div className="mb-6 pb-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
-            <p className="text-purple-800 font-medium">
-              Hi {studentName}! 👋 I'm analyzing your responses to ask the most relevant questions for your career journey.
-            </p>
+            <h4 className="font-semibold text-purple-900 mb-2">AI Insights</h4>
+            <p className="text-purple-800 text-sm mb-2">{aiAnalysis.reasoning}</p>
+            {aiAnalysis.keyInsights && aiAnalysis.keyInsights.length > 0 && (
+              <div className="text-xs text-purple-700">
+                <strong>Key Insights:</strong> {aiAnalysis.keyInsights.join(', ')}
+              </div>
+            )}
           </div>
         )}
         
@@ -332,14 +282,14 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
               <BrainCogIcon className="h-6 w-6 text-purple-700" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-blue-900">AI Question</h3>
-              <p className="text-sm text-purple-600">Tailored based on your unique profile</p>
+              <h3 className="text-lg font-semibold text-blue-900">AI-Generated Question</h3>
+              <p className="text-sm text-purple-600">Phase: {sessionContext.phase.replace('_', ' ')}</p>
             </div>
           </div>
           
-          <p className="text-blue-900 text-xl mb-6 font-medium leading-relaxed">{question?.question}</p>
+          <p className="text-blue-900 text-xl mb-6 font-medium leading-relaxed">{currentQuestion.text}</p>
 
-          {question?.type === "text" && (
+          {currentQuestion.type === "text" && (
             <Input
               value={currentAnswer}
               onChange={(e) => setCurrentAnswer(e.target.value)}
@@ -349,7 +299,7 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
             />
           )}
 
-          {question?.type === "textarea" && (
+          {currentQuestion.type === "textarea" && (
             <Textarea
               value={currentAnswer}
               onChange={(e) => setCurrentAnswer(e.target.value)}
@@ -358,13 +308,13 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
             />
           )}
 
-          {question?.type === "radio" && question.options && (
+          {currentQuestion.type === "radio" && currentQuestion.options && (
             <RadioGroup
               value={currentAnswer}
               onValueChange={setCurrentAnswer}
               className="space-y-4"
             >
-              {question.options.map((option) => (
+              {currentQuestion.options.map((option) => (
                 <div key={option} className="flex items-center space-x-3 p-4 rounded-lg hover:bg-purple-50 border border-gray-200 hover:border-purple-300 transition-all cursor-pointer">
                   <RadioGroupItem value={option} id={option} className="text-purple-600" />
                   <Label htmlFor={option} className="text-blue-800 font-medium cursor-pointer flex-1 leading-relaxed">{option}</Label>
@@ -377,7 +327,7 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
             {allAnswers.length > 0 && (
-              <span>{allAnswers.length} response{allAnswers.length > 1 ? 's' : ''} recorded</span>
+              <span>{allAnswers.length} response{allAnswers.length > 1 ? 's' : ''} analyzed by AI</span>
             )}
           </div>
           <Button 
@@ -386,11 +336,7 @@ const AICareerQuiz = ({ userId, onComplete }: AIQuizProps) => {
             disabled={!currentAnswer.trim() || loading}
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-8 py-3"
           >
-            {isComplete || allAnswers.length >= 4 ? (
-              <>Generate AI Recommendations <SparklesIcon className="ml-2 h-4 w-4" /></>
-            ) : (
-              <>Continue <RocketIcon className="ml-2 h-4 w-4" /></>
-            )}
+            Continue AI Analysis <SparklesIcon className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardContent>

@@ -26,7 +26,7 @@ const AICareerRecommendations = ({ recommendations, userId, onRetake }: AIRecomm
     try {
       toast({
         title: "Generating AI Report",
-        description: "Creating your personalized career guidance report...",
+        description: "Creating your comprehensive AI-powered career report...",
       });
 
       // Get user's quiz responses for report generation
@@ -44,11 +44,11 @@ const AICareerRecommendations = ({ recommendations, userId, onRetake }: AIRecomm
 
       const { data, error } = await supabase.functions.invoke('ai-career-guidance', {
         body: {
-          action: 'generate_career_report',
+          action: 'generate_detailed_report',
           data: {
             careerData: career,
             studentResponses,
-            studentName: studentResponses["What's your name?"] || "Student"
+            studentName: Object.values(studentResponses)[0] || "Student"
           },
           userId
         }
@@ -60,8 +60,8 @@ const AICareerRecommendations = ({ recommendations, userId, onRetake }: AIRecomm
       setSelectedCareer(career);
       
       toast({
-        title: "Report Generated!",
-        description: "Your AI-powered career report is ready for review.",
+        title: "AI Report Generated!",
+        description: "Your comprehensive AI-powered career report is ready",
         duration: 5000,
       });
     } catch (error) {
@@ -78,7 +78,6 @@ const AICareerRecommendations = ({ recommendations, userId, onRetake }: AIRecomm
 
   const handleSaveCareer = async (career: any) => {
     try {
-      // Update the career as selected in the database
       await supabase
         .from('user_career_history')
         .update({ is_selected: true })
@@ -297,15 +296,18 @@ const AICareerRecommendations = ({ recommendations, userId, onRetake }: AIRecomm
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <BrainCogIcon className="h-8 w-8 text-purple-600 mr-2" />
-          <h2 className="text-3xl font-bold text-blue-900">AI-Powered Career Recommendations</h2>
+          <h2 className="text-3xl font-bold text-blue-900">AI-Generated Career Recommendations</h2>
         </div>
         <p className="text-purple-700 text-lg max-w-2xl mx-auto">
-          Our AI has analyzed your unique profile and generated personalized career paths with detailed insights.
+          Our AI has analyzed your responses and generated personalized career paths designed specifically for you.
         </p>
       </div>
 
-      <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-        <h3 className="font-semibold text-purple-900 mb-2">AI Analysis Summary</h3>
+      <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+        <h3 className="font-semibold text-purple-900 mb-2 flex items-center">
+          <SparklesIcon className="h-5 w-5 mr-2" />
+          AI Analysis Summary
+        </h3>
         <p className="text-purple-800">{recommendations.overallAnalysis}</p>
       </div>
 
@@ -414,7 +416,7 @@ const AICareerRecommendations = ({ recommendations, userId, onRetake }: AIRecomm
           className="border-purple-600 text-purple-700 hover:bg-purple-600 hover:text-white"
         >
           <RocketIcon className="h-4 w-4 mr-2" />
-          Take Assessment Again
+          Start New AI Assessment
         </Button>
       </div>
     </div>
