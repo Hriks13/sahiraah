@@ -43,80 +43,105 @@ serve(async (req) => {
 });
 
 async function generateAdaptiveQuestions(data: any, userId: string) {
-  const { previousAnswers, educationLevel, currentQuestionIndex } = data;
+  const { previousAnswers = [], educationLevel = "", currentQuestionIndex = 0 } = data;
 
   // Create context from previous answers for adaptive questioning
-  let context = `Student is at ${educationLevel} level. `;
+  let context = "";
+  if (educationLevel) {
+    context += `Student is at ${educationLevel} level. `;
+  }
+  
   if (previousAnswers && previousAnswers.length > 0) {
-    context += `Previous responses: ${previousAnswers.map((a: any) => `Q: ${a.question} A: ${a.answer}`).join('; ')}`;
+    const answersText = previousAnswers.map((a: any) => `Q: ${a.question} A: ${a.answer}`).join('; ');
+    context += `Previous responses: ${answersText}`;
   }
 
   const prompt = `
-As an AI career counselor for Indian students, generate 3-5 adaptive follow-up questions based on the student's profile and previous responses.
+As an AI career counselor for Indian students, generate 1-2 adaptive follow-up questions based on the student's profile and previous responses.
 
-Context: ${context}
+Context: ${context || "This is the initial assessment for a student."}
+Question Number: ${currentQuestionIndex + 1}
 
 Requirements:
 1. Questions should be specific to Indian education system and career paths
 2. Adapt based on student's interests shown in previous answers
-3. Include questions about:
+3. If this is the first question, ask about their current education level and interests
+4. If they've answered basic questions, dive deeper into their preferences:
    - Specific subjects they excel in
    - Career aspirations and role models
-   - Preferred work environment
+   - Preferred work environment (remote, office, field work)
    - Technology comfort level
    - Creative vs analytical preferences
-4. Make questions engaging and age-appropriate
-5. Each question should have 4-5 multiple choice options or be open-ended where appropriate
+   - Problem-solving style
+5. Make questions engaging and age-appropriate
+6. Each question should have 4-5 multiple choice options
 
 Return response as JSON with this structure:
 {
   "questions": [
     {
-      "id": "q_unique_id",
+      "id": "q_${currentQuestionIndex + 1}",
       "question": "Question text",
-      "type": "radio|text|textarea",
-      "options": ["option1", "option2", ...] // only for radio type
+      "type": "radio",
+      "options": ["option1", "option2", "option3", "option4"]
     }
   ],
-  "reasoning": "Why these questions were chosen"
+  "reasoning": "Why this question was chosen based on previous answers",
+  "isComplete": false
 }
+
+If you think we have enough information after 5-6 questions, set isComplete to true.
 `;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-    }),
-  });
-
-  const aiResponse = await response.json();
-  const content = aiResponse.choices[0].message.content;
-  
   try {
-    const parsedContent = JSON.parse(content);
-    return new Response(JSON.stringify(parsedContent), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+      }),
     });
-  } catch (parseError) {
-    console.error('Failed to parse AI response:', parseError);
-    // Fallback questions if AI response parsing fails
-    const fallbackQuestions = {
-      questions: [
-        {
-          id: "interests_general",
-          question: "Which activities do you find most engaging?",
-          type: "radio",
-          options: ["Problem-solving and puzzles", "Creative projects", "Helping others", "Leading teams", "Analyzing information"]
-        }
-      ],
-      reasoning: "Fallback question due to parsing error"
-    };
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const aiResponse = await response.json();
+    
+    if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message) {
+      throw new Error('Invalid response structure from OpenAI');
+    }
+
+    const content = aiResponse.choices[0].message.content;
+    
+    try {
+      const parsedContent = JSON.parse(content);
+      console.log("AI Generated Question Reasoning:", parsedContent.reasoning);
+      
+      return new Response(JSON.stringify(parsedContent), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', parseError);
+      console.log('Raw AI response:', content);
+      
+      // Fallback questions based on current question index
+      const fallbackQuestions = getFallbackQuestion(currentQuestionIndex);
+      
+      return new Response(JSON.stringify(fallbackQuestions), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    
+    // Fallback questions if OpenAI fails
+    const fallbackQuestions = getFallbackQuestion(currentQuestionIndex);
     
     return new Response(JSON.stringify(fallbackQuestions), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -124,8 +149,69 @@ Return response as JSON with this structure:
   }
 }
 
+function getFallbackQuestion(questionIndex: number) {
+  const fallbackQuestions = [
+    {
+      questions: [{
+        id: `q_${questionIndex + 1}`,
+        question: "What is your current education level?",
+        type: "radio",
+        options: ["10th Standard", "PU/11th-12th", "Diploma", "Graduate", "Post-Graduate"]
+      }],
+      reasoning: "Starting with basic education level",
+      isComplete: false
+    },
+    {
+      questions: [{
+        id: `q_${questionIndex + 1}`,
+        question: "Which subjects do you enjoy the most?",
+        type: "radio",
+        options: ["Mathematics & Science", "Languages & Literature", "Arts & Creative", "Social Sciences", "Technology & Computers"]
+      }],
+      reasoning: "Understanding subject preferences",
+      isComplete: false
+    },
+    {
+      questions: [{
+        id: `q_${questionIndex + 1}`,
+        question: "What type of work environment appeals to you?",
+        type: "radio",
+        options: ["Office-based teamwork", "Independent remote work", "Field work & travel", "Creative studio", "Laboratory/Research"]
+      }],
+      reasoning: "Exploring work environment preferences",
+      isComplete: false
+    },
+    {
+      questions: [{
+        id: `q_${questionIndex + 1}`,
+        question: "How comfortable are you with technology?",
+        type: "radio",
+        options: ["Very comfortable - I love new tech", "Comfortable - I can learn quickly", "Moderate - I use basics well", "Limited - I prefer non-tech work"]
+      }],
+      reasoning: "Assessing technology comfort level",
+      isComplete: false
+    },
+    {
+      questions: [{
+        id: `q_${questionIndex + 1}`,
+        question: "What motivates you most in work?",
+        type: "radio",
+        options: ["Helping others and making impact", "Solving complex problems", "Creating something new", "Leading and managing teams", "Financial success and growth"]
+      }],
+      reasoning: "Understanding core motivations",
+      isComplete: true
+    }
+  ];
+  
+  return fallbackQuestions[Math.min(questionIndex, fallbackQuestions.length - 1)];
+}
+
 async function analyzeResponsesAndGenerateRecommendations(data: any, userId: string) {
-  const { responses, educationLevel, studentName } = data;
+  const { responses, educationLevel = "", studentName = "Student" } = data;
+
+  if (!responses || Object.keys(responses).length === 0) {
+    throw new Error('No responses provided for analysis');
+  }
 
   const prompt = `
 Analyze the following student responses and generate personalized career recommendations for an Indian student.
@@ -168,64 +254,81 @@ Return response as JSON:
 }
 `;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.8,
-    }),
-  });
-
-  const aiResponse = await response.json();
-  const content = aiResponse.choices[0].message.content;
-
   try {
-    const parsedContent = JSON.parse(content);
-    
-    // Store recommendations in database
-    for (const recommendation of parsedContent.recommendations) {
-      await supabase
-        .from('user_career_history')
-        .insert({
-          user_id: userId,
-          career: recommendation.title,
-          reason: recommendation.reasons.join('. '),
-          roadmap_summary: `Immediate: ${recommendation.learningPath.immediate.join(', ')}. Short-term: ${recommendation.learningPath.shortTerm.join(', ')}. Long-term: ${recommendation.learningPath.longTerm.join(', ')}.`,
-          tags: recommendation.skillsRequired,
-          courses: {
-            beginner: recommendation.learningPath.immediate.map((course: string) => ({
-              title: course,
-              platform: "Recommended",
-              link: "#",
-              estimatedTime: "4-6 weeks"
-            })),
-            intermediate: recommendation.learningPath.shortTerm.map((course: string) => ({
-              title: course,
-              platform: "Recommended", 
-              link: "#",
-              estimatedTime: "8-12 weeks"
-            })),
-            advanced: recommendation.learningPath.longTerm.map((course: string) => ({
-              title: course,
-              platform: "Recommended",
-              link: "#", 
-              estimatedTime: "12+ weeks"
-            }))
-          }
-        });
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
-    return new Response(JSON.stringify(parsedContent), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (parseError) {
-    console.error('Failed to parse AI recommendation response:', parseError);
-    return new Response(JSON.stringify({ error: 'Failed to generate recommendations' }), {
+    const aiResponse = await response.json();
+    
+    if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message) {
+      throw new Error('Invalid response structure from OpenAI');
+    }
+
+    const content = aiResponse.choices[0].message.content;
+
+    try {
+      const parsedContent = JSON.parse(content);
+      
+      // Store recommendations in database
+      for (const recommendation of parsedContent.recommendations) {
+        await supabase
+          .from('user_career_history')
+          .insert({
+            user_id: userId,
+            career: recommendation.title,
+            reason: recommendation.reasons.join('. '),
+            roadmap_summary: `Immediate: ${recommendation.learningPath.immediate.join(', ')}. Short-term: ${recommendation.learningPath.shortTerm.join(', ')}. Long-term: ${recommendation.learningPath.longTerm.join(', ')}.`,
+            tags: recommendation.skillsRequired,
+            courses: {
+              beginner: recommendation.learningPath.immediate.map((course: string) => ({
+                title: course,
+                platform: "Recommended",
+                link: "#",
+                estimatedTime: "4-6 weeks"
+              })),
+              intermediate: recommendation.learningPath.shortTerm.map((course: string) => ({
+                title: course,
+                platform: "Recommended", 
+                link: "#",
+                estimatedTime: "8-12 weeks"
+              })),
+              advanced: recommendation.learningPath.longTerm.map((course: string) => ({
+                title: course,
+                platform: "Recommended",
+                link: "#", 
+                estimatedTime: "12+ weeks"
+              }))
+            }
+          });
+      }
+
+      return new Response(JSON.stringify(parsedContent), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (parseError) {
+      console.error('Failed to parse AI recommendation response:', parseError);
+      return new Response(JSON.stringify({ error: 'Failed to generate recommendations' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch (error) {
+    console.error('Error calling OpenAI for recommendations:', error);
+    return new Response(JSON.stringify({ error: 'Failed to analyze responses' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -233,7 +336,7 @@ Return response as JSON:
 }
 
 async function generateCareerReport(data: any, userId: string) {
-  const { careerData, studentResponses, studentName } = data;
+  const { careerData, studentResponses = {}, studentName = "Student" } = data;
 
   const prompt = `
 Generate a comprehensive career guidance report for ${studentName} based on their quiz responses and selected career path.
@@ -283,40 +386,57 @@ Return as JSON:
 }
 `;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-    }),
-  });
-
-  const aiResponse = await response.json();
-  const content = aiResponse.choices[0].message.content;
-
   try {
-    const parsedContent = JSON.parse(content);
-    
-    // Update career history with report data
-    await supabase
-      .from('user_career_history')
-      .update({
-        report_data: parsedContent
-      })
-      .eq('user_id', userId)
-      .eq('career', careerData.title);
-
-    return new Response(JSON.stringify(parsedContent), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+      }),
     });
-  } catch (parseError) {
-    console.error('Failed to parse AI report response:', parseError);
-    return new Response(JSON.stringify({ error: 'Failed to generate report' }), {
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const aiResponse = await response.json();
+    
+    if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message) {
+      throw new Error('Invalid response structure from OpenAI');
+    }
+
+    const content = aiResponse.choices[0].message.content;
+
+    try {
+      const parsedContent = JSON.parse(content);
+      
+      // Update career history with report data
+      await supabase
+        .from('user_career_history')
+        .update({
+          report_data: parsedContent
+        })
+        .eq('user_id', userId)
+        .eq('career', careerData.title);
+
+      return new Response(JSON.stringify(parsedContent), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (parseError) {
+      console.error('Failed to parse AI report response:', parseError);
+      return new Response(JSON.stringify({ error: 'Failed to generate report' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch (error) {
+    console.error('Error calling OpenAI for report:', error);
+    return new Response(JSON.stringify({ error: 'Failed to generate career report' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
