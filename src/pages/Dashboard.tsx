@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import CareerQuiz from "@/components/CareerQuiz";
+import CareerQuizMenu from "@/components/CareerQuizMenu";
 import CareerRecommendationsAI from "@/components/CareerRecommendationsAI";
 import ExploreResources from "@/components/ExploreResources";
 import AdBanner from "@/components/AdBanner";
@@ -187,7 +187,7 @@ const Dashboard = () => {
         ) : quizStarted ? (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
-            <CareerQuiz userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
+            <CareerQuizMenu userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
             {/* Quiz Section Ad - Courses focused */}
             <AdBanner size="large-rectangle" className="mt-8 flex justify-center" educationalCategory="courses" />
           </div>
