@@ -27,7 +27,8 @@ serve(async (req) => {
     // Enhanced fallback analysis when OpenAI fails
     let analysis;
     
-    if (openAIApiKey) {
+    // Check if OpenAI API key is available and valid
+    if (openAIApiKey && openAIApiKey.trim() !== '') {
       try {
         // Create comprehensive analysis prompt for Indian students
         const analysisPrompt = `You are an expert career counselor specializing in guidance for Indian students. 
@@ -99,7 +100,9 @@ Return response in JSON format:
         });
 
         if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
+          const errorData = await response.text();
+          console.error(`OpenAI API error ${response.status}:`, errorData);
+          throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
         }
 
         const aiData = await response.json();
@@ -112,8 +115,11 @@ Return response in JSON format:
         }
       } catch (error) {
         console.error('OpenAI analysis failed:', error);
+        console.log('Falling back to fallback analysis');
         analysis = null;
       }
+    } else {
+      console.log('OpenAI API key not configured, using fallback analysis');
     }
 
     // Enhanced fallback analysis based on user responses
