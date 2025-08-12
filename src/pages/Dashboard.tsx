@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import CareerQuizMenu from "@/components/CareerQuizMenu";
-import CareerRecommendationsAI from "@/components/CareerRecommendationsAI";
+import GeminiCareerQuiz from "@/components/GeminiCareerQuiz";
+import GeminiCareerReport from "@/components/GeminiCareerReport";
 import ExploreResources from "@/components/ExploreResources";
 import AdBanner from "@/components/AdBanner";
 import { toast } from "@/components/ui/use-toast";
@@ -177,7 +177,7 @@ const Dashboard = () => {
         {/* Quiz Section */}
         {quizCompleted && completedSessionId ? (
           <>
-            <CareerRecommendationsAI 
+            <GeminiCareerReport 
               sessionId={completedSessionId} 
               onRetake={handleRetakeQuiz} 
             />
@@ -186,8 +186,8 @@ const Dashboard = () => {
           </>
         ) : quizStarted ? (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-blue-900 mb-6">Career Discovery AI</h2>
-            <CareerQuizMenu userId={user?.id || 'guest'} onComplete={handleQuizComplete} />
+            <h2 className="text-2xl font-bold text-blue-900 mb-6">Smart Career Assessment</h2>
+            <GeminiCareerQuiz onComplete={handleQuizComplete} onBack={() => setQuizStarted(false)} />
             {/* Quiz Section Ad - Courses focused */}
             <AdBanner size="large-rectangle" className="mt-8 flex justify-center" educationalCategory="courses" />
           </div>
@@ -207,10 +207,10 @@ const Dashboard = () => {
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
                         1
                       </div>
-                      <div>
-                        <h4 className="font-medium text-blue-900">Take the Adaptive Quiz</h4>
-                        <p className="text-sm text-blue-700">AI adapts questions based on your responses</p>
-                      </div>
+                   <div>
+                     <h4 className="font-medium text-blue-900">Take the Smart Tree Assessment</h4>
+                     <p className="text-sm text-blue-700">Short questions that adapt to your interests</p>
+                   </div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold mr-3">
@@ -233,12 +233,12 @@ const Dashboard = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button 
-                    className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold w-full"
-                    onClick={handleStartQuiz}
-                  >
-                    Start AI Assessment
-                  </Button>
+                   <Button 
+                     className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-semibold w-full"
+                     onClick={handleStartQuiz}
+                   >
+                     Take Career Quiz
+                   </Button>
                 </CardFooter>
               </Card>
 

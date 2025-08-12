@@ -65,6 +65,49 @@ const GeminiCareerReport = ({ sessionId, onRetake }: Props) => {
     fetchAnalysisData();
   }, [sessionId]);
 
+  const storeReportInHistory = async (sessionData: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Extract all courses from career recommendations
+      const allCourses: any[] = [];
+      if (Array.isArray(sessionData.career_recommendations)) {
+        sessionData.career_recommendations.forEach((rec: any) => {
+          if (rec.freeResources) {
+            ['beginner', 'intermediate', 'advanced'].forEach(level => {
+              if (Array.isArray(rec.freeResources[level])) {
+                rec.freeResources[level].forEach((course: any) => {
+                  allCourses.push({
+                    ...course,
+                    level,
+                    careerPath: rec.title
+                  });
+                });
+              }
+            });
+          }
+        });
+      }
+
+      // Store in user_career_history
+      await supabase.from('user_career_history').upsert({
+        user_id: user.id,
+        session_id: sessionId,
+        career: sessionData.career_recommendations?.[0]?.title || 'Career Assessment',
+        strengths: sessionData.strengths,
+        weaknesses: sessionData.weaknesses,
+        improvement_areas: sessionData.weaknesses,
+        report_data: sessionData,
+        courses: allCourses,
+        tags: sessionData.career_recommendations?.map((rec: any) => rec.title) || [],
+        roadmap_summary: `Career assessment completed for ${sessionData.student_name}. Recommendations: ${sessionData.career_recommendations?.map((rec: any) => rec.title).join(', ')}`
+      }, { onConflict: 'session_id' });
+    } catch (error) {
+      console.error('Error storing report in history:', error);
+    }
+  };
+
   const fetchAnalysisData = async () => {
     try {
       setError(null);
@@ -89,6 +132,9 @@ const GeminiCareerReport = ({ sessionId, onRetake }: Props) => {
           : [];
         
         let careerRecommendations: CareerRecommendation[] = [];
+        
+        // Store in history when report is viewed
+        await storeReportInHistory(sessionData);
         
         if (Array.isArray(sessionData.career_recommendations)) {
           careerRecommendations = sessionData.career_recommendations

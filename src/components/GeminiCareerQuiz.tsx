@@ -226,10 +226,10 @@ const GeminiCareerQuiz = ({ onComplete, onBack }: Props) => {
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
           <BrainIcon className="h-12 w-12 text-primary mx-auto mb-4" />
-          <CardTitle className="text-2xl">AI-Powered Career Guidance</CardTitle>
-          <CardDescription className="text-lg">
-            Get personalized career recommendations through our adaptive questionnaire
-          </CardDescription>
+          <CardTitle className="text-2xl">Smart Tree Career Assessment</CardTitle>
+           <CardDescription className="text-lg">
+             Get personalized career recommendations through our smart assessment
+           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
@@ -243,32 +243,26 @@ const GeminiCareerQuiz = ({ onComplete, onBack }: Props) => {
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="education">Education Level *</Label>
-              <Select value={educationLevel} onValueChange={setEducationLevel}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your education level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10th">10th Grade</SelectItem>
-                  <SelectItem value="12th">12th Grade</SelectItem>
-                  <SelectItem value="undergraduate">Undergraduate</SelectItem>
-                  <SelectItem value="graduate">Graduate</SelectItem>
-                  <SelectItem value="postgraduate">Post Graduate</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+             <div className="space-y-2">
+               <Label htmlFor="education">Education Level *</Label>
+               <Input
+                 id="education"
+                 placeholder="e.g., 10th Grade, 12th Grade, Undergraduate, Graduate"
+                 value={educationLevel}
+                 onChange={(e) => setEducationLevel(e.target.value)}
+               />
+             </div>
           </div>
 
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="font-semibold text-blue-900 mb-2">What to Expect:</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Up to 15 dynamic, personalized questions</li>
-              <li>• Questions adapt based on your previous answers</li>
-              <li>• Get 5 tailored career recommendations</li>
-              <li>• Receive free learning resources for each level</li>
-              <li>• Download a comprehensive report card</li>
-            </ul>
+             <ul className="text-sm text-blue-800 space-y-1">
+               <li>• Up to 15 short, easy-to-understand questions</li>
+               <li>• Type your own answers, no multiple choice</li>
+               <li>• Get 5 tailored career recommendations</li>
+               <li>• Receive 3 free courses for each level</li>
+               <li>• Save results and courses to your history</li>
+             </ul>
           </div>
 
           <div className="flex gap-4">
@@ -338,27 +332,12 @@ const GeminiCareerQuiz = ({ onComplete, onBack }: Props) => {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{currentQuestion.question}</h3>
             
-            {currentQuestion.type === "radio" && currentQuestion.options && (
-              <RadioGroup value={currentAnswer} onValueChange={setCurrentAnswer}>
-                {currentQuestion.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            )}
-            
-            {currentQuestion.type === "text" && (
-              <Textarea
-                placeholder={currentQuestion.placeholder || "Share your thoughts..."}
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                className="min-h-[120px]"
-              />
-            )}
+            <Textarea
+              placeholder="Type your answer here... Share your thoughts and preferences"
+              value={currentAnswer}
+              onChange={(e) => setCurrentAnswer(e.target.value)}
+              className="min-h-[120px]"
+            />
           </div>
         )}
 

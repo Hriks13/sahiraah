@@ -59,7 +59,7 @@ async function generateNextQuestion(answers: any[], currentQuestionCount: number
     `Q${i + 1}: ${a.question}\nAnswer: ${a.answer}`
   ).join('\n\n');
 
-  const questionPrompt = `You are an expert career counselor for Indian students. Generate the next question in a dynamic tree-based career assessment.
+  const questionPrompt = `You are an expert career counselor for Indian students. Generate the next SHORT and EASY question in a dynamic tree-based career assessment.
 
 STUDENT PROFILE:
 - Name: ${userName}
@@ -69,24 +69,25 @@ STUDENT PROFILE:
 PREVIOUS RESPONSES:
 ${answerContext || 'No previous responses yet'}
 
-TASK: Generate the next question that branches naturally from their previous answers. The question should:
+TASK: Generate a SHORT, SIMPLE question that branches naturally from their previous answers. The question should:
 
-1. Build upon their previous responses to dive deeper into their interests
-2. Be culturally relevant for Indian students and career market
-3. Focus on emerging careers and modern opportunities
-4. Use a dynamic tree approach - if they showed interest in a subject, branch into specific areas
-5. Be engaging and help reveal personality traits, skills, and interests
+1. Be MAXIMUM 15 words - keep it short and clear
+2. Build upon their previous responses to dive deeper into their interests  
+3. Be culturally relevant for Indian students and career market
+4. Focus on emerging careers and modern opportunities
+5. Use simple language that's easy to understand
+6. Help reveal personality traits, skills, and interests
 
 EXAMPLE BRANCHING LOGIC:
-- If they mentioned "Hindi" → Ask about Poetry, Literature, Teaching, or Journalism
-- If they mentioned "Technology" → Ask about Software, Data Science, AI, or Cybersecurity
-- If they mentioned "Business" → Ask about Finance, Marketing, Consulting, or Entrepreneurship
+- If they mentioned "Technology" → Ask "What tech area interests you most?"
+- If they mentioned "Creative" → Ask "Which creative field excites you?"
+- If they mentioned "Helping people" → Ask "How do you prefer to help others?"
 
 Return EXACTLY this JSON format:
 {
-  "question": "The specific question text that builds on their previous responses",
-  "type": "radio",
-  "options": ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"],
+  "question": "Short, simple question text (max 15 words)",
+  "type": "text",
+  "placeholder": "Type your answer here...",
   "category": "category_name",
   "reasoning": "Why this question follows from their previous answers"
 }
@@ -187,13 +188,19 @@ Return EXACTLY this JSON format:
       "educationPath": "Specific education recommendations",
       "freeResources": {
         "beginner": [
-          {"title": "Course Name", "url": "https://example.com", "platform": "Platform Name", "duration": "X weeks"}
+          {"title": "HTML & CSS Basics", "url": "https://www.freecodecamp.org/learn/responsive-web-design/", "platform": "FreeCodeCamp", "duration": "4 weeks"},
+          {"title": "JavaScript for Beginners", "url": "https://www.codecademy.com/learn/introduction-to-javascript", "platform": "Codecademy", "duration": "6 weeks"},
+          {"title": "Programming Basics", "url": "https://www.khanacademy.org/computing/computer-programming", "platform": "Khan Academy", "duration": "8 weeks"}
         ],
         "intermediate": [
-          {"title": "Course Name", "url": "https://example.com", "platform": "Platform Name", "duration": "X weeks"}
+          {"title": "React.js Complete Course", "url": "https://www.youtube.com/watch?v=bMknfKXIFA8", "platform": "YouTube", "duration": "10 weeks"},
+          {"title": "Node.js Tutorial", "url": "https://www.youtube.com/watch?v=TlB_eWDSMt4", "platform": "YouTube", "duration": "8 weeks"},
+          {"title": "Database Design", "url": "https://www.coursera.org/learn/database-design", "platform": "Coursera", "duration": "6 weeks"}
         ],
         "advanced": [
-          {"title": "Course Name", "url": "https://example.com", "platform": "Platform Name", "duration": "X weeks"}
+          {"title": "System Design Primer", "url": "https://www.youtube.com/watch?v=ZgdS0EUmn70", "platform": "YouTube", "duration": "12 weeks"},
+          {"title": "AWS Cloud Practitioner", "url": "https://www.youtube.com/watch?v=3hLmDS179YE", "platform": "YouTube", "duration": "10 weeks"},
+          {"title": "Machine Learning Course", "url": "https://www.coursera.org/learn/machine-learning", "platform": "Coursera", "duration": "16 weeks"}
         ]
       }
     }
@@ -202,7 +209,7 @@ Return EXACTLY this JSON format:
   "recommendedNextSteps": ["Step 1", "Step 2", "Step 3"]
 }
 
-Focus on careers relevant to India's job market and include only freely accessible courses.`;
+Focus on careers relevant to India's job market and include ONLY working, free, and accessible course URLs.`;
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
@@ -261,13 +268,19 @@ Focus on careers relevant to India's job market and include only freely accessib
           educationPath: "Computer Science, Engineering, or coding bootcamps",
           freeResources: {
             beginner: [
-              {"title": "HTML & CSS Basics", "url": "https://www.freecodecamp.org/learn/responsive-web-design/", "platform": "FreeCodeCamp", "duration": "4 weeks"}
+              {"title": "HTML & CSS Basics", "url": "https://www.freecodecamp.org/learn/responsive-web-design/", "platform": "FreeCodeCamp", "duration": "4 weeks"},
+              {"title": "JavaScript Basics", "url": "https://www.codecademy.com/learn/introduction-to-javascript", "platform": "Codecademy", "duration": "6 weeks"},
+              {"title": "Programming Fundamentals", "url": "https://www.khanacademy.org/computing/computer-programming", "platform": "Khan Academy", "duration": "8 weeks"}
             ],
             intermediate: [
-              {"title": "JavaScript Complete Course", "url": "https://www.youtube.com/watch?v=hdI2bqOjy3c", "platform": "YouTube", "duration": "8 weeks"}
+              {"title": "React.js Complete Course", "url": "https://www.youtube.com/watch?v=bMknfKXIFA8", "platform": "YouTube", "duration": "10 weeks"},
+              {"title": "Node.js Tutorial", "url": "https://www.youtube.com/watch?v=TlB_eWDSMt4", "platform": "YouTube", "duration": "8 weeks"},
+              {"title": "Database Fundamentals", "url": "https://www.coursera.org/learn/database-design", "platform": "Coursera", "duration": "6 weeks"}
             ],
             advanced: [
-              {"title": "React.js Tutorial", "url": "https://www.youtube.com/watch?v=bMknfKXIFA8", "platform": "YouTube", "duration": "12 weeks"}
+              {"title": "System Design Basics", "url": "https://www.youtube.com/watch?v=ZgdS0EUmn70", "platform": "YouTube", "duration": "12 weeks"},
+              {"title": "AWS Cloud Essentials", "url": "https://www.youtube.com/watch?v=3hLmDS179YE", "platform": "YouTube", "duration": "10 weeks"},
+              {"title": "Machine Learning Intro", "url": "https://www.coursera.org/learn/machine-learning", "platform": "Coursera", "duration": "16 weeks"}
             ]
           }
         }
@@ -289,37 +302,37 @@ Focus on careers relevant to India's job market and include only freely accessib
 function getFallbackQuestion(questionCount: number, answers: any[]) {
   const fallbackQuestions = [
     {
-      question: "What type of subjects interest you the most?",
-      type: "radio",
-      options: ["Science & Technology", "Arts & Literature", "Business & Commerce", "Social Sciences", "Creative Arts"],
+      question: "What subjects interest you most?",
+      type: "text",
+      placeholder: "Type the subjects that interest you...",
       category: "interests",
       reasoning: "Understanding core subject interests helps identify career paths."
     },
     {
-      question: "How do you prefer to work on projects?",
-      type: "radio",
-      options: ["Independently with minimal supervision", "In small collaborative teams", "Leading large teams", "Following structured guidelines", "Mixing different approaches"],
+      question: "How do you prefer to work?",
+      type: "text",
+      placeholder: "Describe your preferred work style...",
       category: "work_style",
       reasoning: "Work style preferences indicate suitable career environments."
     },
     {
-      question: "What motivates you most in your career goals?",
-      type: "radio",
-      options: ["Making a positive impact on society", "Financial independence and security", "Continuous learning and growth", "Recognition and achievement", "Work-life balance and flexibility"],
+      question: "What motivates you in your career?",
+      type: "text",
+      placeholder: "Share what drives you professionally...",
       category: "motivation",
       reasoning: "Understanding motivations helps align career choices with personal values."
     },
     {
-      question: "Which emerging technology field excites you most?",
-      type: "radio",
-      options: ["Artificial Intelligence & Machine Learning", "Sustainable Technology & Green Energy", "Healthcare & Biotechnology", "Financial Technology (FinTech)", "Space Technology & Research"],
+      question: "Which technology field excites you?",
+      type: "text",
+      placeholder: "Tell us about technology that interests you...",
       category: "technology",
       reasoning: "Interest in emerging technologies guides future career opportunities."
     },
     {
-      question: "How do you handle challenging situations?",
-      type: "radio",
-      options: ["Analyze thoroughly before acting", "Take quick decisive action", "Seek advice from mentors", "Collaborate with others for solutions", "Trust my intuition and experience"],
+      question: "How do you solve problems?",
+      type: "text",
+      placeholder: "Describe your problem-solving approach...",
       category: "problem_solving",
       reasoning: "Problem-solving approach reveals leadership and decision-making style."
     }
