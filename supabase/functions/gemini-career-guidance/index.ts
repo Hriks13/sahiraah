@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const geminiApiKey = 'AIzaSyDeYsXpdJgBR98IxfV8NjFk6Wm8ml2f7YY';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -127,7 +127,7 @@ Generate a question that feels like a natural continuation of the conversation.`
     const questionData = JSON.parse(jsonMatch[0]);
     
     // Validate the response
-    if (!questionData.question || !questionData.options || !Array.isArray(questionData.options)) {
+    if (!questionData.question) {
       throw new Error('Invalid question format from AI');
     }
 
