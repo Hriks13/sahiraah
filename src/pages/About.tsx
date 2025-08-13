@@ -111,18 +111,18 @@ const About = () => {
                 </Avatar>
               </div>
               <h3 className="text-xl font-bold mb-1 text-blue-800">Nithish Kumar B</h3>
-              <p className="text-blue-700">Cloud Engineer</p>
+              <p className="text-blue-700">AI Lead</p>
             </div>
             
             <div className="bg-blue-50 p-5 rounded-xl shadow text-center">
               <div className="mx-auto mb-3 w-24 h-24 rounded-full overflow-hidden border-4 border-blue-200">
                 <Avatar className="w-full h-full">
-                  <AvatarImage src="/lovable-uploads/a76bcec3-8df6-42e8-9c30-98a61df2ba76.png" alt="H Adithya Rao" className="object-cover" />
+                  <AvatarImage src="/lovable-uploads/1bd2fd26-59a7-4638-ab11-3b70e09e14a6.png" alt="H Adithya Rao" className="object-cover" />
                   <AvatarFallback>AR</AvatarFallback>
                 </Avatar>
               </div>
               <h3 className="text-xl font-bold mb-1 text-blue-800">H Adithya Rao</h3>
-              <p className="text-blue-700">Co-founder & Product Lead</p>
+              <p className="text-blue-700">Education Specialist</p>
             </div>
           </div>
         </div>
