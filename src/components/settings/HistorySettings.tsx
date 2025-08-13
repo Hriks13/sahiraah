@@ -183,7 +183,8 @@ export const HistorySettings = ({ userId }: HistorySettingsProps) => {
                     </div>
                     {result.courses && (
                       <div className="text-xs text-blue-600">
-                        {Object.keys(result.courses).length > 0 && "External courses available"}
+                        {Array.isArray(result.courses) && result.courses.length > 0 && `${result.courses.length} courses available`}
+                        {!Array.isArray(result.courses) && Object.keys(result.courses).length > 0 && "External courses available"}
                       </div>
                     )}
                   </div>
