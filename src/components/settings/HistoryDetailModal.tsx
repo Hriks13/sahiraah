@@ -255,49 +255,97 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
             <div>
               <h3 className="text-lg font-semibold text-blue-900 mb-4">Complete Learning Path</h3>
               
-              <Tabs defaultValue="beginner" className="w-full">
-                <TabsList className="w-full grid grid-cols-3 mb-6">
-                  <TabsTrigger 
-                    value="beginner" 
-                    className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
-                  >
-                    <div className="text-center">
-                      <div className="font-medium">Beginner</div>
-                      <div className="text-xs opacity-75">Foundation</div>
-                    </div>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="intermediate" 
-                    className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
-                  >
-                    <div className="text-center">
-                      <div className="font-medium">Intermediate</div>
-                      <div className="text-xs opacity-75">Practical Skills</div>
-                    </div>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="advanced" 
-                    className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
-                  >
-                    <div className="text-center">
-                      <div className="font-medium">Advanced</div>
-                      <div className="text-xs opacity-75">Mastery</div>
-                    </div>
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="beginner">
-                  {renderCourseLevel('beginner', item.courses.beginner || [])}
-                </TabsContent>
-                
-                <TabsContent value="intermediate">
-                  {renderCourseLevel('intermediate', item.courses.intermediate || [])}
-                </TabsContent>
-                
-                <TabsContent value="advanced">
-                  {renderCourseLevel('advanced', item.courses.advanced || [])}
-                </TabsContent>
-              </Tabs>
+              {Array.isArray(item.courses) ? (
+                // New format: Array of courses with level property
+                <Tabs defaultValue="beginner" className="w-full">
+                  <TabsList className="w-full grid grid-cols-3 mb-6">
+                    <TabsTrigger 
+                      value="beginner" 
+                      className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">Beginner</div>
+                        <div className="text-xs opacity-75">Foundation</div>
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="intermediate" 
+                      className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">Intermediate</div>
+                        <div className="text-xs opacity-75">Practical Skills</div>
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="advanced" 
+                      className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">Advanced</div>
+                        <div className="text-xs opacity-75">Mastery</div>
+                      </div>
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="beginner">
+                    {renderCourseLevel('beginner', item.courses.filter((course: any) => course.level === 'beginner'))}
+                  </TabsContent>
+                  
+                  <TabsContent value="intermediate">
+                    {renderCourseLevel('intermediate', item.courses.filter((course: any) => course.level === 'intermediate'))}
+                  </TabsContent>
+                  
+                  <TabsContent value="advanced">
+                    {renderCourseLevel('advanced', item.courses.filter((course: any) => course.level === 'advanced'))}
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                // Legacy format: Object with level keys
+                <Tabs defaultValue="beginner" className="w-full">
+                  <TabsList className="w-full grid grid-cols-3 mb-6">
+                    <TabsTrigger 
+                      value="beginner" 
+                      className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">Beginner</div>
+                        <div className="text-xs opacity-75">Foundation</div>
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="intermediate" 
+                      className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">Intermediate</div>
+                        <div className="text-xs opacity-75">Practical Skills</div>
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="advanced" 
+                      className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">Advanced</div>
+                        <div className="text-xs opacity-75">Mastery</div>
+                      </div>
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="beginner">
+                    {renderCourseLevel('beginner', item.courses.beginner || [])}
+                  </TabsContent>
+                  
+                  <TabsContent value="intermediate">
+                    {renderCourseLevel('intermediate', item.courses.intermediate || [])}
+                  </TabsContent>
+                  
+                  <TabsContent value="advanced">
+                    {renderCourseLevel('advanced', item.courses.advanced || [])}
+                  </TabsContent>
+                </Tabs>
+              )}
             </div>
           )}
 
@@ -307,8 +355,10 @@ export const HistoryDetailModal = ({ isOpen, onClose, item }: HistoryDetailModal
               <ClockIcon className="h-4 w-4 mr-2" />
               <span>
                 Generated on {new Date(item.timestamp).toLocaleString()} • 
-                {item.courses && Object.keys(item.courses).length > 0 
-                  ? ` ${Object.values(item.courses).flat().length} total resources`
+                 {item.courses && (Array.isArray(item.courses) ? item.courses.length > 0 : Object.keys(item.courses).length > 0)
+                  ? Array.isArray(item.courses) 
+                    ? ` ${item.courses.length} total resources`
+                    : ` ${Object.values(item.courses).flat().length} total resources`
                   : ' No resources available'
                 }
               </span>

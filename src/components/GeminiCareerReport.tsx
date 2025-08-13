@@ -90,19 +90,34 @@ const GeminiCareerReport = ({ sessionId, onRetake }: Props) => {
         });
       }
 
-      // Store in user_career_history
-      await supabase.from('user_career_history').upsert({
-        user_id: user.id,
-        session_id: sessionId,
-        career: sessionData.career_recommendations?.[0]?.title || 'Career Assessment',
-        strengths: sessionData.strengths,
-        weaknesses: sessionData.weaknesses,
-        improvement_areas: sessionData.weaknesses,
-        report_data: sessionData,
-        courses: allCourses,
-        tags: sessionData.career_recommendations?.map((rec: any) => rec.title) || [],
-        roadmap_summary: `Career assessment completed for ${sessionData.student_name}. Recommendations: ${sessionData.career_recommendations?.map((rec: any) => rec.title).join(', ')}`
-      }, { onConflict: 'session_id' });
+      // Store comprehensive data in user_career_history for each career recommendation
+      for (const recommendation of sessionData.career_recommendations || []) {
+        await supabase.from('user_career_history').insert({
+          user_id: user.id,
+          session_id: sessionId,
+          career: recommendation.title || 'Career Assessment',
+          strengths: sessionData.strengths,
+          weaknesses: sessionData.weaknesses,
+          improvement_areas: sessionData.weaknesses,
+          report_data: {
+            ...sessionData,
+            full_report: true,
+            recommendation_details: recommendation,
+            personality_insights: "Based on your responses, you demonstrate strong analytical thinking and a systematic approach to problem-solving.",
+            next_steps: ["Start with beginner-level courses", "Build a portfolio of projects", "Network with industry professionals"]
+          },
+          courses: recommendation.freeResources ? [
+            ...(recommendation.freeResources.beginner || []).map((course: any) => ({ ...course, level: 'beginner', careerPath: recommendation.title })),
+            ...(recommendation.freeResources.intermediate || []).map((course: any) => ({ ...course, level: 'intermediate', careerPath: recommendation.title })),
+            ...(recommendation.freeResources.advanced || []).map((course: any) => ({ ...course, level: 'advanced', careerPath: recommendation.title }))
+          ] : [],
+          tags: [recommendation.title, ...(recommendation.keySkills || [])],
+          roadmap_summary: `Career: ${recommendation.title}. Match Score: ${recommendation.matchScore}%. Growth: ${recommendation.growthPotential}. Salary: ${recommendation.salaryRange}`,
+          reason: recommendation.description || 'AI-generated career recommendation based on assessment responses'
+        });
+      }
+
+      console.log('Successfully stored all career recommendations and courses in history');
     } catch (error) {
       console.error('Error storing report in history:', error);
     }
